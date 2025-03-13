@@ -11,6 +11,9 @@ import { Button } from "@/components/ui/button";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { toast } from "sonner";
 
+// Pre-defined Gemini API key
+const DEFAULT_API_KEY = "AIzaSyC-8n20FilSbUhJ8tYZAxLoj3_60_ugkfA";
+
 const Index = () => {
   const [sensorData, setSensorData] = useState<SensorData>({
     ph: 7.0,
@@ -19,13 +22,16 @@ const Index = () => {
     timestamp: Date.now(),
   });
   const [historicalData, setHistoricalData] = useState<SensorData[]>([]);
-  const [apiKey, setApiKey] = useState<string>("");
+  const [apiKey, setApiKey] = useState<string>(DEFAULT_API_KEY);
   const [recommendation, setRecommendation] = useState<string>("");
   
   useEffect(() => {
     const storedApiKey = localStorage.getItem("gemini-api-key");
     if (storedApiKey) {
       setApiKey(storedApiKey);
+    } else if (DEFAULT_API_KEY) {
+      // If no stored key but we have a default, save it
+      localStorage.setItem("gemini-api-key", DEFAULT_API_KEY);
     }
     
     updateSensorData();

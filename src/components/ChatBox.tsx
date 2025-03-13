@@ -132,7 +132,7 @@ const ChatBox = ({ sensorData, apiKey, setApiKey }: ChatBoxProps) => {
 
   return (
     <div className="flex flex-col h-full">
-      {/* API Key input */}
+      {/* API Key input - only shown if apiKey is empty */}
       {!apiKey && (
         <div className="mb-4 p-4 border rounded-lg bg-muted">
           <p className="text-sm mb-2">Enter your Gemini API key to enable the chatbot:</p>
