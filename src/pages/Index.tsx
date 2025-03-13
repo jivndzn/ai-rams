@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import PhGauge from "@/components/PhGauge";
@@ -170,9 +171,9 @@ const Index = () => {
                       <Tooltip 
                         labelFormatter={(label) => `Time: ${label}`}
                         formatter={(value, name) => {
-                          if (name === 'quality') return [`${value}%`, 'Quality'];
-                          if (name === 'ph') return [`${value.toFixed(1)}`, 'pH'];
-                          if (name === 'temperature') return [`${value.toFixed(1)}°C`, 'Temperature'];
+                          if (name === 'quality') return [`${typeof value === 'number' ? value.toFixed(0) : value}%`, 'Quality'];
+                          if (name === 'ph') return [`${typeof value === 'number' ? value.toFixed(1) : value}`, 'pH'];
+                          if (name === 'temperature') return [`${typeof value === 'number' ? value.toFixed(1) : value}°C`, 'Temperature'];
                           return [value, name];
                         }}
                       />
