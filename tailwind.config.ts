@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,7 +62,34 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
-				}
+				},
+				// Water-themed colors
+				aqua: {
+					50: '#f0fdff',
+					100: '#e0faff',
+					200: '#baf3ff',
+					300: '#7de8ff',
+					400: '#36d4ff',
+					500: '#0bc2ff',
+					600: '#0098d1',
+					700: '#0077a9',
+					800: '#00648c',
+					900: '#085373',
+					950: '#053349',
+				},
+				teal: {
+					50: '#effef5',
+					100: '#dafeea',
+					200: '#b8f9d7',
+					300: '#81f0b9',
+					400: '#43e095',
+					500: '#1ac678',
+					600: '#0ca05f',
+					700: '#0a7f4e',
+					800: '#0c663f',
+					900: '#0a5535',
+					950: '#03301e',
+				},
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
@@ -84,11 +112,21 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'pulse-slow': {
+					'0%, 100%': { opacity: '1' },
+					'50%': { opacity: '0.5' },
+				},
+				'water-ripple': {
+					'0%': { transform: 'scale(0.95)', opacity: '1' },
+					'100%': { transform: 'scale(1.2)', opacity: '0' }
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'pulse-slow': 'pulse-slow 3s infinite',
+				'water-ripple': 'water-ripple 2s ease-out infinite'
 			}
 		}
 	},
