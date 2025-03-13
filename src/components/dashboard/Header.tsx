@@ -1,17 +1,27 @@
 
-import { Droplet } from "lucide-react";
+import { DropletIcon } from "lucide-react";
 
 const DashboardHeader = () => {
   return (
-    <header className="mb-8">
-      <h1 className="text-3xl md:text-4xl font-bold text-foreground flex items-center">
-        <Droplet className="mr-2 h-8 w-8 text-aqua-500" />
-        AquaBot: Rainwater Quality Analyzer
-      </h1>
+    <div className="mb-8">
+      <div className="flex items-center">
+        <DropletIcon className="h-8 w-8 text-teal-500 mr-2" />
+        <h1 className="text-2xl font-bold">AI-RAMS: AI-Integrated Rainwater Management System</h1>
+      </div>
       <p className="text-muted-foreground mt-2">
-        Real-time rainwater quality analysis and usage recommendations
+        Real-time monitoring and AI-driven analysis for optimal rainwater utilization
       </p>
-    </header>
+      <div className="mt-4 p-4 bg-muted rounded-lg text-sm">
+        <p className="font-medium mb-1">Research Abstract:</p>
+        <p className="text-muted-foreground">
+          This system addresses water scarcity challenges by combining rainwater harvesting with 
+          real-time pH monitoring and AI-driven decision-making. It leverages sensor technology, 
+          automation, and machine learning to assess and optimize water quality for various domestic 
+          applications. The prototype demonstrates significant enhancements in water conservation 
+          while ensuring safe water quality through automated adjustments.
+        </p>
+      </div>
+    </div>
   );
 };
 

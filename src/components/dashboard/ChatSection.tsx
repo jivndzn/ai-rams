@@ -13,9 +13,12 @@ const ChatSection = ({ sensorData, apiKey, setApiKey }: ChatSectionProps) => {
   return (
     <Card className="h-full">
       <CardHeader className="pb-2">
-        <CardTitle className="text-lg">AquaBot Assistant</CardTitle>
+        <CardTitle className="text-lg">AI Research Assistant</CardTitle>
+        <p className="text-sm text-muted-foreground">
+          Ask questions about water quality analysis and sustainable usage
+        </p>
       </CardHeader>
-      <CardContent className="h-[calc(100%-4rem)]">
+      <CardContent className="h-[calc(100%-5.5rem)]">
         <ChatBox 
           sensorData={sensorData} 
           apiKey={apiKey}

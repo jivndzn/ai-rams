@@ -64,7 +64,7 @@ const Index = () => {
     const newData = simulateSensorReading();
     setSensorData(newData);
     toast.success("Sensor data updated", { 
-      description: new Date(newData.timestamp).toLocaleTimeString() 
+      description: `Timestamp: ${new Date(newData.timestamp).toLocaleTimeString()}` 
     });
   };
   

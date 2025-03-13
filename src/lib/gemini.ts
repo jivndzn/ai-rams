@@ -65,8 +65,8 @@ export async function getWaterRecommendation(
     return data.candidates[0].content.parts[0].text;
   } catch (error) {
     console.error("Error getting recommendation:", error);
-    toast.error("Failed to get recommendation. Please try again.");
-    return "I'm having trouble analyzing your water data right now. Please try again later.";
+    toast.error("Failed to get analysis. Please try again.");
+    return "I'm having trouble analyzing your rainwater data right now. Please try again later.";
   }
 }
 
@@ -78,21 +78,20 @@ function constructPrompt(
   userQuestion?: string
 ): string {
   const basePrompt = `
-You are AquaBot, an expert in rainwater quality analysis. Analyze the following rainwater quality data:
+You are a research assistant for the AI-RAMS (AI-Integrated Rainwater Management System) project, specializing in rainwater quality analysis and sustainable usage. Analyze the following sensor data:
 
 - pH level: ${ph.toFixed(1)} (7.0 is neutral)
 - Temperature: ${temperature.toFixed(1)}°C
-- Overall water quality (0-100): ${quality}
+- Overall water quality index (0-100): ${quality}
 
-Based on this data, determine the optimal use for this rainwater. Consider:
-1. Domestic use (if the water meets safe standards)
-2. Irrigation for plants (if slightly acidic or alkaline)
-3. Car washing (if suitable for non-potable purposes)
-4. Other potential uses based on the quality
+Based on this data and the principles of sustainable water management, determine:
+1. The optimal application for this rainwater (household use, irrigation, non-potable uses)
+2. Potential treatment needs, if any
+3. Water conservation implications
 
-${userQuestion ? `Also, please address this specific question: ${userQuestion}` : ''}
+${userQuestion ? `Also, please address this specific research question: ${userQuestion}` : ''}
 
-Provide a brief analysis of the water quality and a clear recommendation for its best use. Explain why this use is optimal given the current readings. Keep your response concise and informative.
+Provide a brief scientific analysis of the water quality parameters and clear recommendations supported by water quality standards. Reference sustainability principles where relevant. Your analysis will inform the AI-driven decision-making component of the system.
 `;
 
   return basePrompt;
@@ -110,14 +109,14 @@ export async function chatWithGemini(
     // Provide context about the current water readings
     const contextMessage: GeminiMessage = {
       role: 'user',
-      parts: [{ text: `Current water readings - pH: ${ph.toFixed(1)}, Temperature: ${temperature.toFixed(1)}°C, Quality: ${quality}/100` }],
+      parts: [{ text: `Current sensor readings - pH: ${ph.toFixed(1)}, Temperature: ${temperature.toFixed(1)}°C, Quality Index: ${quality}/100` }],
     };
     
     // Create a context-aware conversation
     const conversationHistory = [
       {
         role: "user" as const,
-        parts: [{ text: "You are AquaBot, an expert in rainwater quality analysis. Be helpful, concise, and informative when answering questions about water quality." }],
+        parts: [{ text: "You are a research assistant for the AI-RAMS (AI-Integrated Rainwater Management System) project. Provide scientifically accurate, concise information about rainwater quality, sustainable water management, and treatment options. Use an academic but accessible tone." }],
       },
       contextMessage,
       ...messages,
@@ -154,6 +153,6 @@ export async function chatWithGemini(
   } catch (error) {
     console.error("Error chatting with Gemini:", error);
     toast.error("Failed to get a response. Please try again.");
-    return "I'm having trouble responding right now. Please try again later.";
+    return "I'm having trouble responding to your research query right now. Please try again later.";
   }
 }

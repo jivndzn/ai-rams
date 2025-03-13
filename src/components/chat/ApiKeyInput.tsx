@@ -18,7 +18,7 @@ const ApiKeyInput = ({ localApiKey, setLocalApiKey, saveApiKey }: ApiKeyInputPro
 
   return (
     <div className="mb-4 p-4 border rounded-lg bg-muted">
-      <p className="text-sm mb-2">Enter your Gemini API key to enable the chatbot:</p>
+      <p className="text-sm mb-2">Enter your Gemini API key to enable the research assistant:</p>
       <div className="flex gap-2">
         <Input
           type="password"
@@ -29,6 +29,9 @@ const ApiKeyInput = ({ localApiKey, setLocalApiKey, saveApiKey }: ApiKeyInputPro
         />
         <Button onClick={handleSaveApiKey}>Save</Button>
       </div>
+      <p className="text-xs mt-2 text-muted-foreground">
+        The AI assistant provides research-grade analysis of water quality parameters
+      </p>
     </div>
   );
 };

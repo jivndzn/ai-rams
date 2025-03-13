@@ -1,4 +1,3 @@
-
 // Types for our sensor data
 export interface SensorData {
   ph: number;
@@ -10,11 +9,11 @@ export interface SensorData {
 // Function to determine water use recommendation based on pH
 export function getWaterUseRecommendation(ph: number): string {
   if (ph >= 6.5 && ph <= 8.5) {
-    return "Domestic Use";
+    return "Domestic Household Use";
   } else if ((ph >= 5.5 && ph < 6.5) || (ph > 8.5 && ph <= 9.0)) {
     return "Plant Irrigation";
   } else {
-    return "Car Washing";
+    return "Non-potable Applications";
   }
 }
 
@@ -55,7 +54,7 @@ export function getPhColor(ph: number): string {
   }
 }
 
-// Function to simulate sensor readings (for development purposes)
+// Function to simulate sensor readings (for research demonstration)
 export function simulateSensorReading(): SensorData {
   // Random pH between 5.0 and 9.0
   const ph = 5.0 + Math.random() * 4.0;
@@ -74,7 +73,7 @@ export function simulateSensorReading(): SensorData {
   };
 }
 
-// Function to get historical data (simulated)
+// Function to get historical data (simulated for research purposes)
 export function getHistoricalData(hours: number = 24): SensorData[] {
   const data: SensorData[] = [];
   const now = Date.now();

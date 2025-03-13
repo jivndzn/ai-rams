@@ -17,7 +17,7 @@ const AnalysisButton = ({ handleAutoAnalysis, isLoading }: AnalysisButtonProps) 
       disabled={isLoading}
     >
       <Sparkles className="h-4 w-4 mr-2" />
-      Generate New Analysis
+      Generate Research Analysis
     </Button>
   );
 };
