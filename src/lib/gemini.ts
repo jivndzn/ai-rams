@@ -26,6 +26,10 @@ export async function getWaterRecommendation(
   userQuestion?: string
 ): Promise<string> {
   try {
+    if (!apiKey) {
+      return "Please provide a valid Gemini API key to receive personalized rainwater analysis and recommendations.";
+    }
+    
     // Construct the prompt with the sensor data
     const prompt = constructPrompt(ph, temperature, quality, userQuestion);
     
@@ -58,6 +62,14 @@ export async function getWaterRecommendation(
     if (!response.ok) {
       const error = await response.json();
       console.error("Gemini API error:", error);
+      
+      // Check for specific error types
+      if (response.status === 401) {
+        return "Your API key appears to be invalid. Please provide a valid Gemini API key in the text field above.";
+      } else if (response.status === 429) {
+        return "You've reached the rate limit for the Gemini API. Please try again in a few minutes.";
+      }
+      
       throw new Error(`API error: ${error.error?.message || 'Unknown error'}`);
     }
 
@@ -66,7 +78,7 @@ export async function getWaterRecommendation(
   } catch (error) {
     console.error("Error getting recommendation:", error);
     toast.error("Failed to get analysis. Please try again.");
-    return "I'm having trouble analyzing your rainwater data right now. Please try again later.";
+    return "I'm having trouble connecting to the Gemini AI service. This could be due to an invalid API key or a network issue. Please check your API key and try again.";
   }
 }
 
@@ -114,6 +126,10 @@ export async function chatWithGemini(
   quality: number,
 ): Promise<string> {
   try {
+    if (!apiKey) {
+      return "Please provide a valid Gemini API key to interact with the AI Research Assistant.";
+    }
+    
     // Provide context about the current water readings
     const contextMessage: GeminiMessage = {
       role: 'user',
@@ -153,6 +169,14 @@ export async function chatWithGemini(
     if (!response.ok) {
       const error = await response.json();
       console.error("Gemini API error:", error);
+      
+      // Check for specific error types
+      if (response.status === 401) {
+        return "Your API key appears to be invalid. Please provide a valid Gemini API key in the text field above.";
+      } else if (response.status === 429) {
+        return "You've reached the rate limit for the Gemini API. Please try again in a few minutes.";
+      }
+      
       throw new Error(`API error: ${error.error?.message || 'Unknown error'}`);
     }
 
@@ -161,6 +185,6 @@ export async function chatWithGemini(
   } catch (error) {
     console.error("Error chatting with Gemini:", error);
     toast.error("Failed to get a response. Please try again.");
-    return "I'm having trouble responding to your research query right now. Please try again later.";
+    return "I'm having trouble connecting to the Gemini AI service. This could be due to an invalid API key or a network issue. Please check your API key and try again.";
   }
 }
