@@ -45,8 +45,7 @@ export function getGeminiApiKey(localStorageKey: string = 'gemini-api-key'): str
  * @returns Whether the key looks valid based on format
  */
 export function validateApiKeyFormat(apiKey: string): boolean {
-  // Gemini API keys are typically prefixed with "AI"
-  // and have a specific length/format
-  // This is a simple check that can be improved
-  return apiKey.trim().length > 10;
+  // Updated validation: Gemini API keys are now typically longer strings
+  // This is a more permissive check to accommodate various API key formats
+  return !!apiKey && apiKey.trim().length > 8;
 }

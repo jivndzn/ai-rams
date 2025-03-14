@@ -13,10 +13,6 @@ import HistoricalChart from "@/components/dashboard/HistoricalChart";
 import ChatSection from "@/components/dashboard/ChatSection";
 import DashboardFooter from "@/components/dashboard/Footer";
 
-// Default API key as fallback only if environment variable is not set
-// This will be overridden by VITE_GEMINI_API_KEY if available
-const DEFAULT_API_KEY = "AIzaSyC-8n20FilSbUhJ8tYZAxLoj3_60_ugkfA";
-
 const Index = () => {
   const [sensorData, setSensorData] = useState<SensorData>({
     ph: 7.0,
@@ -26,19 +22,16 @@ const Index = () => {
   });
   const [historicalData, setHistoricalData] = useState<SensorData[]>([]);
   const [apiKey, setApiKey] = useState<string>(() => {
-    // Initialize with environment variable or localStorage value
-    return getGeminiApiKey() || DEFAULT_API_KEY;
+    // Initialize with environment variable or localStorage value only (no default)
+    return getGeminiApiKey();
   });
   const [recommendation, setRecommendation] = useState<string>("");
   
   useEffect(() => {
-    // Load API key on initial render
+    // Load API key on initial render from environment or localStorage
     const initialApiKey = getGeminiApiKey();
     if (initialApiKey) {
       setApiKey(initialApiKey);
-    } else if (DEFAULT_API_KEY) {
-      // If no stored key but we have a default, save it
-      localStorage.setItem("gemini-api-key", DEFAULT_API_KEY);
     }
     
     updateSensorData();

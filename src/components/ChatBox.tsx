@@ -35,7 +35,7 @@ const ChatBox = ({ sensorData, apiKey, setApiKey }: ChatBoxProps) => {
 
   return (
     <div className="flex flex-col h-full">
-      {/* API Key input - only shown if apiKey is empty */}
+      {/* API Key input - always shown if empty */}
       {!apiKey && (
         <ApiKeyInput 
           localApiKey={localApiKey}
@@ -45,7 +45,25 @@ const ChatBox = ({ sensorData, apiKey, setApiKey }: ChatBoxProps) => {
       )}
       
       {/* Chat messages */}
-      <MessageList messages={messages} isLoading={isLoading} />
+      <div className={`flex-1 overflow-y-auto ${messages.length === 0 ? 'flex items-center justify-center' : ''}`}>
+        {messages.length === 0 ? (
+          <div className="text-center p-4">
+            {apiKey ? (
+              <>
+                <p className="text-muted-foreground mb-2">Click the button below to generate a water analysis</p>
+                <AnalysisButton 
+                  handleAutoAnalysis={handleAutoAnalysis}
+                  isLoading={isLoading}
+                />
+              </>
+            ) : (
+              <p className="text-muted-foreground">Enter your API key to start using the research assistant</p>
+            )}
+          </div>
+        ) : (
+          <MessageList messages={messages} isLoading={isLoading} />
+        )}
+      </div>
       
       {/* Chat input */}
       <ChatInput
@@ -58,7 +76,7 @@ const ChatBox = ({ sensorData, apiKey, setApiKey }: ChatBoxProps) => {
       />
       
       {/* Auto-analysis button */}
-      {apiKey && (
+      {apiKey && messages.length > 0 && (
         <AnalysisButton 
           handleAutoAnalysis={handleAutoAnalysis}
           isLoading={isLoading}

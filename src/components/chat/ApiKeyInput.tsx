@@ -38,7 +38,7 @@ const ApiKeyInput = ({ localApiKey, setLocalApiKey, saveApiKey }: ApiKeyInputPro
   return (
     <div className="mb-4 p-4 border rounded-lg bg-muted">
       <div className="flex items-center gap-2 mb-2">
-        <p className="text-sm">Enter your Gemini API key to enable the research assistant:</p>
+        <p className="text-sm font-medium">Enter your Gemini API key to enable the research assistant:</p>
         <div className="tooltip cursor-help" data-tip="The API key is stored locally and never sent to our servers">
           <Info className="h-4 w-4 text-muted-foreground" />
         </div>
@@ -48,7 +48,7 @@ const ApiKeyInput = ({ localApiKey, setLocalApiKey, saveApiKey }: ApiKeyInputPro
           type="password"
           value={localApiKey}
           onChange={handleInputChange}
-          placeholder="Gemini API Key"
+          placeholder="Paste your API key here"
           className={`flex-1 ${!isValidFormat && localApiKey ? 'border-red-300' : ''}`}
         />
         <Button 
@@ -61,11 +61,11 @@ const ApiKeyInput = ({ localApiKey, setLocalApiKey, saveApiKey }: ApiKeyInputPro
       <p className="text-xs mt-2 text-muted-foreground">
         {!isValidFormat && localApiKey ? 
           <span className="text-red-400">Please enter a valid API key</span> :
-          "The AI assistant provides research-grade analysis of water quality parameters"
+          "Get your API key from Google AI Studio (https://makersuite.google.com/app/apikey)"
         }
       </p>
       <p className="text-xs mt-1 text-muted-foreground">
-        You can also set the API key using the VITE_GEMINI_API_KEY environment variable.
+        You can also set the API key using the VITE_GEMINI_API_KEY environment variable in a .env file.
       </p>
     </div>
   );

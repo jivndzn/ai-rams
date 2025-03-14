@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { GeminiMessage, chatWithGemini, getWaterRecommendation } from "@/lib/gemini";
 import { SensorData } from "@/lib/sensors";
@@ -23,7 +24,9 @@ export const useChatWithGemini = ({ sensorData, apiKey }: UseChatWithGeminiProps
 
   const handleAutoAnalysis = async () => {
     if (!apiKey || !validateApiKeyFormat(apiKey)) {
-      toast.warning("Please enter a valid Gemini API key to get water analysis");
+      toast.warning("API key required", {
+        description: "Please enter a valid Gemini API key to get water analysis"
+      });
       return;
     }
 
@@ -63,7 +66,9 @@ export const useChatWithGemini = ({ sensorData, apiKey }: UseChatWithGeminiProps
     if (!input.trim()) return;
     
     if (!apiKey || !validateApiKeyFormat(apiKey)) {
-      toast.warning("Please enter a valid Gemini API key to chat");
+      toast.warning("API key required", {
+        description: "Please enter a valid Gemini API key to chat"
+      });
       return;
     }
     
