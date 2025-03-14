@@ -36,9 +36,10 @@ const Index = () => {
     
     updateSensorData();
     
+    // Changed from 30000ms (30 seconds) to 3600000ms (1 hour)
     const interval = setInterval(() => {
       updateSensorData();
-    }, 30000);
+    }, 3600000);
     
     return () => clearInterval(interval);
   }, []);
