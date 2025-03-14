@@ -43,11 +43,15 @@ export const useChatWithGemini = ({ sensorData, apiKey }: UseChatWithGeminiProps
       const newMessages: GeminiMessage[] = [
         { 
           role: "model", 
-          parts: [{ text: "Hello! I'm your AquaBot assistant for the AI-RAMS research project. I'll help analyze your rainwater quality. Here's my initial assessment:" }] 
+          parts: [{ text: "Welcome to AI-RAMS! I'm your water quality assistant. I analyze rainwater metrics every 15 minutes and provide personalized recommendations for optimal use. Here's my current assessment:" }] 
         },
         { 
           role: "model", 
           parts: [{ text: response }] 
+        },
+        {
+          role: "model",
+          parts: [{ text: "You can ask me specific questions about water treatment, quality parameters, or sustainable usage strategies. I'm here to help you maximize the value of your rainwater harvesting system!" }]
         }
       ];
       

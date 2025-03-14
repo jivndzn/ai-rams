@@ -88,6 +88,14 @@ Based on this data and the principles of sustainable water management, determine
 1. The optimal application for this rainwater (household use, irrigation, non-potable uses)
 2. Potential treatment needs, if any
 3. Water conservation implications
+4. Step-by-step instructions for the user to implement your recommendation
+5. Long-term benefits of your recommended approach
+
+Provide a detailed analysis of the optimal use for this rainwater based on the current readings. 
+Include specific actionable recommendations that users can follow immediately.
+Structure your response with clear headings and bullet points when appropriate.
+If the pH is between 6.5-8.5, temperature 18-25°C, and quality above 70, highlight that this water is suitable for most household applications.
+If any parameter is outside optimal ranges, prioritize safety considerations.
 
 ${userQuestion ? `Also, please address this specific research question: ${userQuestion}` : ''}
 
