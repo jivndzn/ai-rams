@@ -1,7 +1,7 @@
-
 import { useState, useEffect } from "react";
 import { GeminiMessage, chatWithGemini, getWaterRecommendation } from "@/lib/gemini";
 import { SensorData } from "@/lib/sensors";
+import { validateApiKeyFormat } from "@/lib/env";
 import { toast } from "sonner";
 
 interface UseChatWithGeminiProps {
@@ -16,14 +16,14 @@ export const useChatWithGemini = ({ sensorData, apiKey }: UseChatWithGeminiProps
 
   // Auto-analysis when first loaded or sensor data changes significantly
   useEffect(() => {
-    if (messages.length === 0 && apiKey) {
+    if (messages.length === 0 && apiKey && validateApiKeyFormat(apiKey)) {
       handleAutoAnalysis();
     }
   }, [apiKey]); // Only run on initial api key setup
 
   const handleAutoAnalysis = async () => {
-    if (!apiKey) {
-      toast.warning("Please enter a Gemini API key to get water analysis");
+    if (!apiKey || !validateApiKeyFormat(apiKey)) {
+      toast.warning("Please enter a valid Gemini API key to get water analysis");
       return;
     }
 
@@ -40,7 +40,7 @@ export const useChatWithGemini = ({ sensorData, apiKey }: UseChatWithGeminiProps
       const newMessages: GeminiMessage[] = [
         { 
           role: "model", 
-          parts: [{ text: "Hello! I'm your AquaBot assistant. I'll help you analyze your rainwater quality. Here's my initial assessment:" }] 
+          parts: [{ text: "Hello! I'm your AquaBot assistant for the AI-RAMS research project. I'll help analyze your rainwater quality. Here's my initial assessment:" }] 
         },
         { 
           role: "model", 
@@ -51,6 +51,9 @@ export const useChatWithGemini = ({ sensorData, apiKey }: UseChatWithGeminiProps
       setMessages(newMessages);
     } catch (error) {
       console.error("Error during auto analysis:", error);
+      toast.error("Analysis failed", {
+        description: "Could not connect to Gemini API. Please check your API key and try again."
+      });
     } finally {
       setIsLoading(false);
     }
@@ -58,8 +61,9 @@ export const useChatWithGemini = ({ sensorData, apiKey }: UseChatWithGeminiProps
 
   const handleSendMessage = async () => {
     if (!input.trim()) return;
-    if (!apiKey) {
-      toast.warning("Please enter a Gemini API key to chat");
+    
+    if (!apiKey || !validateApiKeyFormat(apiKey)) {
+      toast.warning("Please enter a valid Gemini API key to chat");
       return;
     }
     
@@ -95,7 +99,9 @@ export const useChatWithGemini = ({ sensorData, apiKey }: UseChatWithGeminiProps
       setMessages((prev) => [...prev, modelMessage]);
     } catch (error) {
       console.error("Error sending message:", error);
-      toast.error("Failed to get a response. Please try again.");
+      toast.error("Failed to get a response", {
+        description: "Please check your API key or try again later."
+      });
     } finally {
       setIsLoading(false);
     }

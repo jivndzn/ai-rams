@@ -1,0 +1,52 @@
+
+// Environment variables utility
+// For Vite, environment variables must be prefixed with VITE_
+// Example: VITE_GEMINI_API_KEY in .env file
+
+/**
+ * Gets an environment variable with fallback
+ * @param key The environment variable key (without VITE_ prefix)
+ * @param fallback Fallback value if environment variable is not set
+ * @returns The environment variable value or fallback
+ */
+export function getEnvVariable(key: string, fallback: string = ''): string {
+  // Vite environment variables are exposed on import.meta.env
+  // and must be prefixed with VITE_
+  const envKey = `VITE_${key}`;
+  const value = import.meta.env[envKey];
+  return value || fallback;
+}
+
+/**
+ * Gets the Gemini API key from environment variables or localStorage
+ * Priority:
+ * 1. Environment variable (VITE_GEMINI_API_KEY)
+ * 2. localStorage
+ * 3. Default fallback
+ */
+export function getGeminiApiKey(localStorageKey: string = 'gemini-api-key'): string {
+  // First check environment variable
+  const envApiKey = getEnvVariable('GEMINI_API_KEY');
+  
+  if (envApiKey) {
+    return envApiKey;
+  }
+  
+  // Then check localStorage
+  const storedApiKey = localStorage.getItem(localStorageKey);
+  
+  return storedApiKey || '';
+}
+
+/**
+ * Validates a Gemini API key format
+ * Note: This doesn't check if the key is actually valid with the API
+ * @param apiKey The API key to validate
+ * @returns Whether the key looks valid based on format
+ */
+export function validateApiKeyFormat(apiKey: string): boolean {
+  // Gemini API keys are typically prefixed with "AI"
+  // and have a specific length/format
+  // This is a simple check that can be improved
+  return apiKey.trim().length > 10;
+}
