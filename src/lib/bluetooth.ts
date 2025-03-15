@@ -30,16 +30,22 @@ const bluetoothState: BluetoothState = {
   connected: false,
 };
 
-// Check if Web Bluetooth API is supported
+// Check if Web Bluetooth API is supported and enabled
 export const isWebBluetoothSupported = (): boolean => {
-  return navigator.bluetooth !== undefined;
+  return typeof navigator !== 'undefined' && 
+         navigator.bluetooth !== undefined;
 };
 
 // Connect to a Bluetooth device
 export const connectToDevice = async (): Promise<boolean> => {
   try {
     if (!isWebBluetoothSupported()) {
-      toast.error("Web Bluetooth API is not supported in this browser");
+      const message = "Web Bluetooth API is not supported or is disabled in this browser. " +
+                      "Please enable it in chrome://flags/#enable-web-bluetooth or use Chrome/Edge on desktop or Android.";
+      toast.error("Bluetooth Not Available", {
+        description: message
+      });
+      console.error(message);
       return false;
     }
 
@@ -81,7 +87,30 @@ export const connectToDevice = async (): Promise<boolean> => {
     return true;
   } catch (error) {
     console.error("Bluetooth connection error:", error);
-    toast.error(`Connection failed: ${error instanceof Error ? error.message : "Unknown error"}`);
+    
+    // Provide specific error messages based on the error type
+    if (error instanceof DOMException && error.name === "NotFoundError") {
+      if (error.message.includes("globally disabled")) {
+        toast.error("Bluetooth is disabled", {
+          description: "Web Bluetooth is disabled in your browser. Please enable it in chrome://flags/#enable-web-bluetooth"
+        });
+      } else {
+        toast.error("No compatible devices found", {
+          description: "Make sure your Arduino device is powered on and nearby"
+        });
+      }
+    } else if (error instanceof DOMException && error.name === "SecurityError") {
+      toast.error("Bluetooth permission denied", {
+        description: "You must grant permission to use Bluetooth"
+      });
+    } else if (error instanceof DOMException && error.name === "NetworkError") {
+      toast.error("Connection failed", {
+        description: "Could not connect to the Bluetooth device"
+      });
+    } else {
+      toast.error(`Connection failed: ${error instanceof Error ? error.message : "Unknown error"}`);
+    }
+    
     return false;
   }
 };
