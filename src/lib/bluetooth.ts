@@ -10,7 +10,7 @@ const TEMPERATURE_CHARACTERISTIC_UUID = "00002a6e-0000-1000-8000-00805f9b34fb"; 
 const TURBIDITY_CHARACTERISTIC_UUID = "00002a6e-0000-1000-8000-00805f9b34fb"; // Turbidity (quality)
 
 interface BluetoothState {
-  device: BluetoothDevice | null;
+  device: globalThis.BluetoothDevice | null;
   server: BluetoothRemoteGATTServer | null;
   service: BluetoothRemoteGATTService | null;
   phCharacteristic: BluetoothRemoteGATTCharacteristic | null;

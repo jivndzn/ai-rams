@@ -1,4 +1,16 @@
 
+interface BluetoothDevice {
+  gatt?: BluetoothRemoteGATTServer;
+  id: string;
+  name?: string;
+  watchingAdvertisements: boolean;
+  addEventListener(type: string, listener: EventListener): void;
+  removeEventListener(type: string, listener: EventListener): void;
+  dispatchEvent(event: Event): boolean;
+  watchAdvertisements(): Promise<void>;
+  unwatchAdvertisements(): void;
+}
+
 interface BluetoothRemoteGATTServer {
   connect(): Promise<BluetoothRemoteGATTServer>;
   disconnect(): void;
