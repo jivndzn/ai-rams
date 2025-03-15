@@ -77,17 +77,7 @@ export async function getWaterRecommendation(
     if (!response.ok) {
       const error = await response.json();
       console.error("Gemini API error:", error);
-      console.log("Full error response:", JSON.stringify(error));
-      
-      if (response.status === 401) {
-        return "Your API key appears to be invalid. Please provide a valid Gemini API key in the text field above.";
-      } else if (response.status === 429) {
-        return "You've reached the rate limit for the Gemini API. Please try again in a few minutes.";
-      } else if (response.status === 404) {
-        return "The Gemini API endpoint could not be found. Please make sure you're using the latest API key from Google AI Studio (https://aistudio.google.com/).";
-      }
-      
-      return `API error: ${error.error?.message || JSON.stringify(error) || 'Unknown error'}`;
+      throw new Error(`API error: ${error.error?.message || 'Unknown error'}`);
     }
 
     const data = await response.json() as GeminiResponse;
@@ -143,19 +133,11 @@ export async function chatWithGemini(
   quality: number,
 ): Promise<string> {
   try {
-    if (!apiKey) {
-      return "Please provide a valid Gemini API key to interact with the AI Research Assistant.";
-    }
-    
-    // Format the messages for the Gemini API
-    const formattedMessages = messages.map(message => ({
-      parts: message.parts
-    }));
-    
-    // Add context message at the beginning
-    formattedMessages.unshift({
-      parts: [{ text: `Current sensor readings - pH: ${ph.toFixed(1)}, Temperature: ${temperature.toFixed(1)}°C, Quality Index: ${quality}/100` }]
-    });
+    // Provide context about the current water readings
+    const contextMessage: GeminiMessage = {
+      role: 'user',
+      parts: [{ text: `Current sensor readings - pH: ${ph.toFixed(1)}, Temperature: ${temperature.toFixed(1)}°C, Quality Index: ${quality}/100` }],
+    };
     
     // Add system prompt at the beginning
     formattedMessages.unshift({
@@ -203,17 +185,7 @@ export async function chatWithGemini(
     if (!response.ok) {
       const error = await response.json();
       console.error("Gemini API error:", error);
-      console.log("Full error response:", JSON.stringify(error));
-      
-      if (response.status === 401) {
-        return "Your API key appears to be invalid. Please provide a valid Gemini API key in the text field above.";
-      } else if (response.status === 429) {
-        return "You've reached the rate limit for the Gemini API. Please try again in a few minutes.";
-      } else if (response.status === 404) {
-        return "The Gemini API endpoint could not be found. Please make sure you're using the latest API key from Google AI Studio (https://aistudio.google.com/).";
-      }
-      
-      return `API error: ${error.error?.message || JSON.stringify(error) || 'Unknown error'}`;
+      throw new Error(`API error: ${error.error?.message || 'Unknown error'}`);
     }
 
     const data = await response.json() as GeminiResponse;
