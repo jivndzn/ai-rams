@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { SensorData, getWaterUseRecommendation, simulateSensorReading } from "@/lib/sensors";
 import { toast } from "sonner";
 import { getGeminiApiKey, validateApiKeyFormat } from "@/lib/env";
+import { readSensorData, isConnected } from "@/lib/bluetooth";
 
 // Components
 import DashboardHeader from "@/components/dashboard/Header";
@@ -12,6 +13,7 @@ import WaterQualityCard from "@/components/dashboard/WaterQualityCard";
 import HistoricalChart from "@/components/dashboard/HistoricalChart";
 import ChatSection from "@/components/dashboard/ChatSection";
 import DashboardFooter from "@/components/dashboard/Footer";
+import BluetoothConnector from "@/components/dashboard/BluetoothConnector";
 
 const Index = () => {
   const [sensorData, setSensorData] = useState<SensorData>({
@@ -36,10 +38,9 @@ const Index = () => {
     
     updateSensorData();
     
-    // Changed from 3600000ms (1 hour) to 900000ms (15 minutes)
     const interval = setInterval(() => {
       updateSensorData();
-    }, 900000);
+    }, 900000); // 15 minutes
     
     return () => clearInterval(interval);
   }, []);
@@ -61,10 +62,23 @@ const Index = () => {
     });
   }, [sensorData]);
   
-  const updateSensorData = () => {
+  const updateSensorData = async () => {
+    // Try to read from Bluetooth device if connected
+    if (isConnected()) {
+      const deviceData = await readSensorData();
+      if (deviceData) {
+        setSensorData(deviceData);
+        toast.success("Sensor data updated from Arduino device", { 
+          description: `Timestamp: ${new Date(deviceData.timestamp).toLocaleTimeString()}` 
+        });
+        return;
+      }
+    }
+    
+    // Fall back to simulated data if no Bluetooth connection
     const newData = simulateSensorReading();
     setSensorData(newData);
-    toast.success("Sensor data updated", { 
+    toast.success("Sensor data updated (simulated)", { 
       description: `Timestamp: ${new Date(newData.timestamp).toLocaleTimeString()}` 
     });
   };
@@ -76,6 +90,8 @@ const Index = () => {
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
+            <BluetoothConnector onUpdateFromDevice={updateSensorData} />
+            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <PhCard phValue={sensorData.ph} />
               <TemperatureCard temperatureValue={sensorData.temperature} />
