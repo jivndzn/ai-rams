@@ -9,7 +9,7 @@ const PH_CHARACTERISTIC_UUID = "00002a6e-0000-1000-8000-00805f9b34fb"; // pH lev
 const TEMPERATURE_CHARACTERISTIC_UUID = "00002a6e-0000-1000-8000-00805f9b34fb"; // Temperature
 const TURBIDITY_CHARACTERISTIC_UUID = "00002a6e-0000-1000-8000-00805f9b34fb"; // Turbidity (quality)
 
-interface BluetoothDevice {
+interface BluetoothState {
   device: BluetoothDevice | null;
   server: BluetoothRemoteGATTServer | null;
   service: BluetoothRemoteGATTService | null;
@@ -20,7 +20,7 @@ interface BluetoothDevice {
 }
 
 // Initialize the Bluetooth state
-const bluetoothState: BluetoothDevice = {
+const bluetoothState: BluetoothState = {
   device: null,
   server: null,
   service: null,
