@@ -1,4 +1,3 @@
-
 import { toast } from "sonner";
 import { SensorData } from "./sensors";
 
@@ -132,7 +131,7 @@ export const connectToDevice = async (): Promise<boolean> => {
     
     // Provide specific error messages based on the error type
     if (error instanceof DOMException && error.name === "NotFoundError") {
-      if (error.message.includes("globally disabled")) {
+      if (String(error).includes("globally disabled")) {
         toast.error("Bluetooth is disabled", {
           description: "Web Bluetooth is disabled in your browser. Please enable it in chrome://flags/#enable-web-bluetooth"
         });
@@ -153,7 +152,8 @@ export const connectToDevice = async (): Promise<boolean> => {
       toast.error(`Connection failed: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
     
-    return false;
+    // Rethrow so the UI can handle it
+    throw error;
   }
 };
 
