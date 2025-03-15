@@ -139,10 +139,14 @@ export async function chatWithGemini(
       parts: [{ text: `Current sensor readings - pH: ${ph.toFixed(1)}, Temperature: ${temperature.toFixed(1)}°C, Quality Index: ${quality}/100` }],
     };
     
+    // Initialize formattedMessages with contextMessage and previous messages
+    const formattedMessages: GeminiMessage[] = [contextMessage, ...messages];
+    
     // Add system prompt at the beginning
     formattedMessages.unshift({
-      parts: [{ text: "You are a research assistant for the AI-RAMS (AI-Integrated Rainwater Management System) project. Provide scientifically accurate, concise information about rainwater quality, sustainable water management, and treatment options. Use an academic but accessible tone." }]
-    });
+          role: 'user',
+          parts: [{ text: "You are a research assistant for the AI-RAMS (AI-Integrated Rainwater Management System) project. Provide scientifically accurate, concise information about rainwater quality, sustainable water management, and treatment options. Use an academic but accessible tone." }]
+        });
 
     // The latest Google AI Studio endpoint
     const response = await fetch(
