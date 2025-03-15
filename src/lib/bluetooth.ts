@@ -30,18 +30,60 @@ const bluetoothState: BluetoothState = {
   connected: false,
 };
 
-// Check if Web Bluetooth API is supported and enabled
+// Check if Web Bluetooth API is supported by the browser
 export const isWebBluetoothSupported = (): boolean => {
   return typeof navigator !== 'undefined' && 
-         navigator.bluetooth !== undefined;
+         typeof navigator.bluetooth !== 'undefined';
+};
+
+// Get browser compatibility information
+export const getBrowserCompatibilityInfo = (): { 
+  isCompatible: boolean; 
+  browserName: string;
+  message: string;
+} => {
+  const ua = navigator.userAgent;
+  let browserName = "Unknown";
+  
+  // Detect browser
+  if (ua.includes("Chrome") && !ua.includes("Edg")) {
+    browserName = "Chrome";
+  } else if (ua.includes("Edg")) {
+    browserName = "Edge";
+  } else if (ua.includes("Firefox")) {
+    browserName = "Firefox";
+  } else if (ua.includes("Safari") && !ua.includes("Chrome")) {
+    browserName = "Safari";
+  } else if (ua.includes("Opera") || ua.includes("OPR")) {
+    browserName = "Opera";
+  }
+
+  const isCompatible = isWebBluetoothSupported();
+  let message = "";
+
+  if (!isCompatible) {
+    if (browserName === "Firefox") {
+      message = "Firefox doesn't support Web Bluetooth. Please try Chrome, Edge, or Opera.";
+    } else if (browserName === "Safari") {
+      message = "Safari doesn't support Web Bluetooth. Please try Chrome or Edge.";
+    } else if (ua.includes("iPhone") || ua.includes("iPad") || ua.includes("iPod")) {
+      message = "Web Bluetooth is not supported on iOS devices in any browser.";
+    } else {
+      message = "Web Bluetooth is not supported in this browser. Please try Chrome, Edge, or Opera.";
+    }
+  } else if (browserName === "Chrome" || browserName === "Edge") {
+    message = "Bluetooth functionality is available. Make sure Bluetooth is enabled on your device.";
+  }
+
+  return { isCompatible, browserName, message };
 };
 
 // Connect to a Bluetooth device
 export const connectToDevice = async (): Promise<boolean> => {
   try {
-    if (!isWebBluetoothSupported()) {
-      const message = "Web Bluetooth API is not supported or is disabled in this browser. " +
-                      "Please enable it in chrome://flags/#enable-web-bluetooth or use Chrome/Edge on desktop or Android.";
+    const { isCompatible, message } = getBrowserCompatibilityInfo();
+    
+    if (!isCompatible) {
       toast.error("Bluetooth Not Available", {
         description: message
       });

@@ -1,9 +1,16 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Bluetooth, BluetoothOff, RefreshCw } from "lucide-react";
-import { connectToDevice, disconnectDevice, isConnected, isWebBluetoothSupported } from "@/lib/bluetooth";
+import { Bluetooth, BluetoothOff, RefreshCw, Info } from "lucide-react";
+import { 
+  connectToDevice, 
+  disconnectDevice, 
+  isConnected, 
+  isWebBluetoothSupported, 
+  getBrowserCompatibilityInfo 
+} from "@/lib/bluetooth";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface BluetoothConnectorProps {
   onUpdateFromDevice: () => void;
@@ -11,7 +18,16 @@ interface BluetoothConnectorProps {
 
 const BluetoothConnector: React.FC<BluetoothConnectorProps> = ({ onUpdateFromDevice }) => {
   const [isLoading, setIsLoading] = useState(false);
-  const supported = isWebBluetoothSupported();
+  const [compatInfo, setCompatInfo] = useState({ 
+    isCompatible: false, 
+    browserName: "", 
+    message: "" 
+  });
+  
+  useEffect(() => {
+    // Get compatibility info when component mounts
+    setCompatInfo(getBrowserCompatibilityInfo());
+  }, []);
 
   const handleConnect = async () => {
     setIsLoading(true);
@@ -30,18 +46,21 @@ const BluetoothConnector: React.FC<BluetoothConnectorProps> = ({ onUpdateFromDev
     onUpdateFromDevice();
   };
 
-  if (!supported) {
+  if (!compatInfo.isCompatible) {
     return (
       <Card className="mb-6">
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center text-lg">
             <BluetoothOff className="mr-2 h-5 w-5 text-red-500" />
-            Bluetooth Not Supported
+            Bluetooth Not Supported in {compatInfo.browserName}
           </CardTitle>
         </CardHeader>
         <CardContent>
+          <p className="text-sm text-muted-foreground mb-4">
+            {compatInfo.message}
+          </p>
           <p className="text-sm text-muted-foreground">
-            Your browser doesn't support the Web Bluetooth API. Try using Chrome, Edge, or Opera on a desktop or Android device.
+            Using simulated data instead. For real device connectivity, please switch to a supported browser.
           </p>
         </CardContent>
       </Card>
@@ -54,6 +73,20 @@ const BluetoothConnector: React.FC<BluetoothConnectorProps> = ({ onUpdateFromDev
         <CardTitle className="flex items-center text-lg">
           <Bluetooth className="mr-2 h-5 w-5 text-blue-500" />
           Sensor Connection
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="icon" className="ml-2 h-6 w-6">
+                <Info className="h-4 w-4" />
+                <span className="sr-only">Bluetooth compatibility info</span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p className="max-w-xs">
+                Web Bluetooth is only fully supported in Chrome, Edge, and Opera on desktop and Android devices. 
+                It is not supported in Firefox, Safari, or any iOS browser.
+              </p>
+            </TooltipContent>
+          </Tooltip>
         </CardTitle>
       </CardHeader>
       <CardContent>
