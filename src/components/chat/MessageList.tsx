@@ -23,7 +23,7 @@ const MessageList = ({ messages, isLoading }: MessageListProps) => {
   return (
     <div 
       ref={scrollAreaRef} 
-      className="flex-1 pr-4 mb-4 overflow-y-auto max-h-[calc(100vh-20rem)]"
+      className="flex-1 pr-4 mb-4 overflow-y-auto max-h-[calc(165vh-20rem)]"
     >
       <div className="flex flex-col">
         {messages.map((message, index) => (

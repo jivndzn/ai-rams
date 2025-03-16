@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import ChatBox from "@/components/ChatBox";
 import { SensorData } from "@/lib/sensors";
@@ -11,7 +10,7 @@ interface ChatSectionProps {
 
 const ChatSection = ({ sensorData, apiKey, setApiKey }: ChatSectionProps) => {
   return (
-    <Card className="h-full">
+    <Card className="h-full max-w-screen-md mx-auto">
       <CardHeader className="pb-2">
         <CardTitle className="text-lg">AI Research Assistant</CardTitle>
         <p className="text-sm text-muted-foreground">
