@@ -10,6 +10,23 @@ interface ChatMessageProps {
 const ChatMessage = ({ message, className }: ChatMessageProps) => {
   const isUser = message.role === "user";
   
+  // Format the message content to handle markdown
+  const formatMessageContent = (text: string): string => {
+    if (isUser) return text;
+    
+    return text
+      // Remove excessive # for headings and replace with styled headings
+      .replace(/#{3,6}\s+(.+)$/gm, '$1')
+      .replace(/##\s+(.+)$/gm, '$1')
+      .replace(/#\s+(.+)$/gm, '$1')
+      // Remove excessive asterisks
+      .replace(/\*{3,}(.+?)\*{3,}/g, '<strong>$1</strong>')
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.+?)\*/g, '<em>$1</em>')
+      // Preserve line breaks but strip extra ones
+      .replace(/\n{3,}/g, '\n\n');
+  };
+  
   return (
     <div 
       className={cn(
@@ -26,7 +43,14 @@ const ChatMessage = ({ message, className }: ChatMessageProps) => {
             : "bg-muted rounded-tl-none"
         )}
       >
-        <p className="whitespace-pre-wrap">{message.parts[0].text}</p>
+        {isUser ? (
+          <p className="whitespace-pre-wrap">{message.parts[0].text}</p>
+        ) : (
+          <div 
+            className="whitespace-pre-wrap prose prose-sm max-w-none"
+            dangerouslySetInnerHTML={{ __html: formatMessageContent(message.parts[0].text) }}
+          />
+        )}
       </div>
     </div>
   );

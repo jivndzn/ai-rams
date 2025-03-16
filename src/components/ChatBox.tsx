@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { SensorData } from "@/lib/sensors";
 import { useChatWithGemini } from "@/hooks/useChatWithGemini";
 import ApiKeyInput from "./chat/ApiKeyInput";
@@ -15,6 +15,7 @@ interface ChatBoxProps {
 
 const ChatBox = ({ sensorData, apiKey, setApiKey }: ChatBoxProps) => {
   const [localApiKey, setLocalApiKey] = useState(apiKey);
+  const [lastSensorTimestamp, setLastSensorTimestamp] = useState(sensorData.timestamp);
   
   const {
     input,
@@ -32,6 +33,20 @@ const ChatBox = ({ sensorData, apiKey, setApiKey }: ChatBoxProps) => {
   const saveApiKey = (key: string) => {
     setApiKey(key);
   };
+  
+  // Trigger analysis when sensor data is updated (every 15 minutes)
+  useEffect(() => {
+    // Only trigger if timestamp has changed and we have data
+    if (sensorData.timestamp !== lastSensorTimestamp && apiKey) {
+      setLastSensorTimestamp(sensorData.timestamp);
+      // Only run auto-analysis if we already have messages (user has seen initial analysis)
+      if (messages.length > 0) {
+        setTimeout(() => {
+          handleAutoAnalysis();
+        }, 500); // Small delay to let UI render first
+      }
+    }
+  }, [sensorData.timestamp, apiKey]);
 
   return (
     <div className="flex flex-col h-full">

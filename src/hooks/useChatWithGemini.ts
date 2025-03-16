@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { GeminiMessage, chatWithGemini, getWaterRecommendation } from "@/lib/gemini";
 import { SensorData } from "@/lib/sensors";
@@ -38,20 +39,17 @@ export const useChatWithGemini = ({ sensorData, apiKey }: UseChatWithGeminiProps
         sensorData.quality
       );
 
+      // Format the response to remove excessive markdown symbols
+      const formattedResponse = formatApiResponse(response);
+
       // Add the auto-analysis as a model message
+      const welcomeMessage = "Welcome to AI-RAMS! I'm your water quality assistant. I analyze rainwater metrics every 15 minutes and provide personalized recommendations for optimal use. Here's my current assessment:";
+      const followupMessage = "You can ask me specific questions about water treatment, quality parameters, or sustainable usage strategies. I'm here to help you maximize the value of your rainwater harvesting system!";
+
       const newMessages: GeminiMessage[] = [
-        { 
-          role: "model", 
-          parts: [{ text: "Welcome to AI-RAMS! I'm your water quality assistant. I analyze rainwater metrics every 15 minutes and provide personalized recommendations for optimal use. Here's my current assessment:" }] 
-        },
-        { 
-          role: "model", 
-          parts: [{ text: response }] 
-        },
-        {
-          role: "model",
-          parts: [{ text: "You can ask me specific questions about water treatment, quality parameters, or sustainable usage strategies. I'm here to help you maximize the value of your rainwater harvesting system!" }]
-        }
+        { role: "model", parts: [{ text: welcomeMessage }] },
+        { role: "model", parts: [{ text: formattedResponse }] },
+        { role: "model", parts: [{ text: followupMessage }] }
       ];
       
       setMessages(newMessages);
@@ -63,6 +61,16 @@ export const useChatWithGemini = ({ sensorData, apiKey }: UseChatWithGeminiProps
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Format API response to improve readability
+  const formatApiResponse = (text: string): string => {
+    // Remove excessive markdown formatting that makes text harder to read
+    return text
+      // Limit heading levels (###+ becomes ##)
+      .replace(/#{3,}/g, '##')
+      // Space out lines for better readability
+      .replace(/\n{3,}/g, '\n\n');
   };
 
   const handleSendMessage = async () => {
@@ -98,10 +106,13 @@ export const useChatWithGemini = ({ sensorData, apiKey }: UseChatWithGeminiProps
         sensorData.quality
       );
       
+      // Format the response to remove excessive markdown symbols
+      const formattedResponse = formatApiResponse(response);
+      
       // Add model response
       const modelMessage: GeminiMessage = {
         role: "model",
-        parts: [{ text: response }],
+        parts: [{ text: formattedResponse }],
       };
       
       setMessages((prev) => [...prev, modelMessage]);
