@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Droplets } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -9,7 +8,7 @@ const LoadingScreen = () => {
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsVisible(false);
-    }, 2000); // Show loading screen for 2 seconds
+    }, 20000); // Show loading screen for 5 seconds
     
     return () => clearTimeout(timer);
   }, []);

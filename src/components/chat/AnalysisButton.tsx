@@ -16,7 +16,7 @@ const AnalysisButton = ({ handleAutoAnalysis, isLoading }: AnalysisButtonProps) 
       disabled={isLoading}
     >
       <Sparkles className="h-4 w-4 mr-2" />
-      Get Optimal Rainwater Usage Recommendations
+      Get Optimal Recommendations
     </Button>
   );
 };

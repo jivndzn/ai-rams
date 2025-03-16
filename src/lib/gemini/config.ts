@@ -1,9 +1,9 @@
 
 // Configuration for Gemini API requests
-export const GEMINI_API_ENDPOINT = 'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-pro:generateContent';
+export const GEMINI_API_ENDPOINT = 'https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent';
 
 // Default Gemini API key - replace with your actual key
-export const DEFAULT_GEMINI_API_KEY = 'YOUR_GEMINI_API_KEY';
+export const DEFAULT_GEMINI_API_KEY = 'AIzaSyC5dwlH4O78FmRUEJoP9K1KzJGlzoZHgEc';
 
 export const DEFAULT_SAFETY_SETTINGS = [
   {

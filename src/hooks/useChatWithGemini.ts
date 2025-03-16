@@ -1,5 +1,4 @@
-
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { GeminiMessage, chatWithGemini, getWaterRecommendation } from "@/lib/gemini";
 import { SensorData } from "@/lib/sensors";
 import { validateApiKeyFormat } from "@/lib/env";
@@ -14,13 +13,30 @@ export const useChatWithGemini = ({ sensorData, apiKey }: UseChatWithGeminiProps
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<GeminiMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [hasAutoAnalyzed, setHasAutoAnalyzed] = useState(false);
+  const autoAnalysisTimeoutRef = useRef<RetryState>({
+    attempts: 0,
+    timeout: null
+  });
+
+  interface RetryState {
+    attempts: number;
+    timeout: NodeJS.Timeout | null;
+  }
 
   // Auto-analysis when first loaded or sensor data changes significantly
   useEffect(() => {
-    if (messages.length === 0 && apiKey && validateApiKeyFormat(apiKey)) {
+    if (!hasAutoAnalyzed && apiKey && validateApiKeyFormat(apiKey)) {
       handleAutoAnalysis();
     }
-  }, [apiKey]); // Only run on initial api key setup
+    
+    return () => {
+      // Clear any pending timeouts when unmounting
+      if (autoAnalysisTimeoutRef.current.timeout) {
+        clearTimeout(autoAnalysisTimeoutRef.current.timeout);
+      }
+    };
+  }, [apiKey, hasAutoAnalyzed]);
 
   const handleAutoAnalysis = async () => {
     if (!apiKey || !validateApiKeyFormat(apiKey)) {
@@ -43,7 +59,7 @@ export const useChatWithGemini = ({ sensorData, apiKey }: UseChatWithGeminiProps
       const formattedResponse = formatApiResponse(response);
 
       // Add the auto-analysis as a model message
-      const welcomeMessage = "Welcome to AI-RAMS! I'm your water quality assistant. I analyze rainwater metrics every 15 minutes and provide personalized recommendations for optimal use. Here's my current assessment:";
+      const welcomeMessage = "Welcome to AI-RAMS! I'm your water quality assistant. I analyze rainwater metrics and provide personalized recommendations for optimal use. Here's my current assessment:";
       const followupMessage = "You can ask me specific questions about water treatment, quality parameters, or sustainable usage strategies. I'm here to help you maximize the value of your rainwater harvesting system!";
 
       const newMessages: GeminiMessage[] = [
@@ -53,11 +69,40 @@ export const useChatWithGemini = ({ sensorData, apiKey }: UseChatWithGeminiProps
       ];
       
       setMessages(newMessages);
+      setHasAutoAnalyzed(true);
+      // Reset retry counter on success
+      autoAnalysisTimeoutRef.current.attempts = 0;
     } catch (error) {
       console.error("Error during auto analysis:", error);
-      toast.error("Analysis failed", {
-        description: "Could not connect to Gemini API. Please check your API key and try again."
-      });
+      
+      // Check if error is due to rate limiting/quota
+      if (error.message?.includes("quota") || error.message?.includes("rate limit")) {
+        const attempts = autoAnalysisTimeoutRef.current.attempts;
+        // Exponential backoff: 5s, 10s, 20s, 40s, 60s max
+        const delay = Math.min(5000 * Math.pow(2, attempts), 60000);
+        
+        toast.warning("API rate limit reached", {
+          description: `Will retry analysis in ${delay/1000} seconds...`
+        });
+        
+        // Schedule retry with exponential backoff
+        autoAnalysisTimeoutRef.current.timeout = setTimeout(() => {
+          autoAnalysisTimeoutRef.current.attempts++;
+          handleAutoAnalysis();
+        }, delay);
+      } else {
+        toast.error("Analysis failed", {
+          description: "Could not connect to Gemini API. Please check your API key and try again."
+        });
+        
+        // For other errors, add a fallback welcome message
+        const fallbackMessage: GeminiMessage = {
+          role: "model", 
+          parts: [{ text: "Welcome to AI-RAMS! I'm currently unable to analyze your water data due to API limitations. You can still view your sensor readings and try again later when the API quota resets." }]
+        };
+        setMessages([fallbackMessage]);
+        setHasAutoAnalyzed(true);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -118,8 +163,17 @@ export const useChatWithGemini = ({ sensorData, apiKey }: UseChatWithGeminiProps
       setMessages((prev) => [...prev, modelMessage]);
     } catch (error) {
       console.error("Error sending message:", error);
-      toast.error("Failed to get a response", {
-        description: "Please check your API key or try again later."
+      
+      // Add error message to the chat
+      const errorMessage: GeminiMessage = {
+        role: "model",
+        parts: [{ text: "I'm currently experiencing connectivity issues with my AI service due to rate limits. Please try again in a few minutes when the API quota resets." }],
+      };
+      
+      setMessages((prev) => [...prev, errorMessage]);
+      
+      toast.error("API rate limit reached", {
+        description: "Please try again later when the quota resets."
       });
     } finally {
       setIsLoading(false);
@@ -140,6 +194,7 @@ export const useChatWithGemini = ({ sensorData, apiKey }: UseChatWithGeminiProps
     isLoading,
     handleAutoAnalysis,
     handleSendMessage,
-    handleKeyDown
+    handleKeyDown,
+    hasAutoAnalyzed
   };
 };
