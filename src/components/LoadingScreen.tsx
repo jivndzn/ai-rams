@@ -46,21 +46,23 @@ const LoadingScreen = () => {
         "animate-fade-out transition-opacity duration-500 ease-in-out",
       )}
     >
-      <style jsx>{`
-        @keyframes falling {
-          0% {
-            transform: translateY(-10px);
-            opacity: 0;
+      <style>
+        {`
+          @keyframes falling {
+            0% {
+              transform: translateY(-10px);
+              opacity: 0;
+            }
+            50% {
+              opacity: 0.7;
+            }
+            100% {
+              transform: translateY(100vh);
+              opacity: 0;
+            }
           }
-          50% {
-            opacity: 0.7;
-          }
-          100% {
-            transform: translateY(100vh);
-            opacity: 0;
-          }
-        }
-      `}</style>
+        `}
+      </style>
       
       {raindrops}
       
