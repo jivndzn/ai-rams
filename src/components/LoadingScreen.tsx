@@ -42,7 +42,7 @@ const LoadingScreen = () => {
     <div 
       className={cn(
         "fixed inset-0 flex flex-col items-center justify-center bg-background z-50",
-        "animate-fade-out transition-opacity duration-500 ease-in-out",
+        "animate-fade-out transition-opacity duration-1000 ease-in-out",
       )}
     >
       <style>

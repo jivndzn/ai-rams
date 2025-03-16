@@ -30,9 +30,9 @@ const Header = ({ className }: HeaderProps) => {
           </svg>
         </div>
         <div>
-          <h1 className="text-xl font-bold">AI-RAMS</h1>
-          <p className="text-xs text-muted-foreground">
-            Rainwater Analysis and Management System
+          <h1 className="text-4xl font-bold">AI-RAMS</h1>
+          <p className="text-xl text-muted-foreground">
+            Artificial Intelligent Rainwater Analysis and Management System
           </p>
         </div>
       </div>
