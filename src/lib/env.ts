@@ -3,6 +3,8 @@
 // For Vite, environment variables must be prefixed with VITE_
 // Example: VITE_GEMINI_API_KEY in .env file
 
+import { DEFAULT_GEMINI_API_KEY } from './gemini/config';
+
 /**
  * Gets an environment variable with fallback
  * @param key The environment variable key (without VITE_ prefix)
@@ -18,24 +20,17 @@ export function getEnvVariable(key: string, fallback: string = ''): string {
 }
 
 /**
- * Gets the Gemini API key from environment variables or localStorage
+ * Gets the Gemini API key from environment variables or the default key
  * Priority:
  * 1. Environment variable (VITE_GEMINI_API_KEY)
- * 2. localStorage
- * 3. Default fallback
+ * 2. Default API key
  */
-export function getGeminiApiKey(localStorageKey: string = 'gemini-api-key'): string {
+export function getGeminiApiKey(): string {
   // First check environment variable
   const envApiKey = getEnvVariable('GEMINI_API_KEY');
   
-  if (envApiKey) {
-    return envApiKey;
-  }
-  
-  // Then check localStorage
-  const storedApiKey = localStorage.getItem(localStorageKey);
-  
-  return storedApiKey || '';
+  // Return environment variable or default key
+  return envApiKey || DEFAULT_GEMINI_API_KEY;
 }
 
 /**

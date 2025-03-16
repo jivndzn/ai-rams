@@ -2,6 +2,9 @@
 // Configuration for Gemini API requests
 export const GEMINI_API_ENDPOINT = 'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-pro:generateContent';
 
+// Default Gemini API key - replace with your actual key
+export const DEFAULT_GEMINI_API_KEY = 'YOUR_GEMINI_API_KEY';
+
 export const DEFAULT_SAFETY_SETTINGS = [
   {
     category: "HARM_CATEGORY_HARASSMENT",

@@ -17,8 +17,7 @@ const ChatInput = ({
   setInput, 
   handleSendMessage, 
   handleKeyDown,
-  isLoading,
-  apiKey
+  isLoading
 }: ChatInputProps) => {
   return (
     <div className="relative mt-auto">
@@ -29,13 +28,13 @@ const ChatInput = ({
         placeholder="Ask about your water quality..."
         className="resize-none pr-12"
         rows={2}
-        disabled={isLoading || !apiKey}
+        disabled={isLoading}
       />
       <Button
         size="icon"
         className="absolute right-2 bottom-2"
         onClick={handleSendMessage}
-        disabled={isLoading || !input.trim() || !apiKey}
+        disabled={isLoading || !input.trim()}
       >
         <Send className="h-4 w-4" />
       </Button>

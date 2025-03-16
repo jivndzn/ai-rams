@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { SensorData, getWaterUseRecommendation, simulateSensorReading } from "@/lib/sensors";
 import { toast } from "sonner";
-import { getGeminiApiKey, validateApiKeyFormat } from "@/lib/env";
+import { getGeminiApiKey } from "@/lib/env";
 import { readSensorData, isConnected } from "@/lib/bluetooth";
 
 // Components
@@ -23,19 +23,10 @@ const Index = () => {
     timestamp: Date.now(),
   });
   const [historicalData, setHistoricalData] = useState<SensorData[]>([]);
-  const [apiKey, setApiKey] = useState<string>(() => {
-    // Initialize with environment variable or localStorage value only (no default)
-    return getGeminiApiKey();
-  });
+  const [apiKey, setApiKey] = useState<string>(getGeminiApiKey());
   const [recommendation, setRecommendation] = useState<string>("");
   
   useEffect(() => {
-    // Load API key on initial render from environment or localStorage
-    const initialApiKey = getGeminiApiKey();
-    if (initialApiKey) {
-      setApiKey(initialApiKey);
-    }
-    
     updateSensorData();
     
     const interval = setInterval(() => {
@@ -44,13 +35,6 @@ const Index = () => {
     
     return () => clearInterval(interval);
   }, []);
-  
-  useEffect(() => {
-    // Store valid API keys in localStorage
-    if (apiKey && validateApiKeyFormat(apiKey)) {
-      localStorage.setItem("gemini-api-key", apiKey);
-    }
-  }, [apiKey]);
   
   useEffect(() => {
     const recommendation = getWaterUseRecommendation(sensorData.ph);
