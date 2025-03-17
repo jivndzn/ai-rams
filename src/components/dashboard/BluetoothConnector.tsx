@@ -2,25 +2,24 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Wifi, WifiOff, RefreshCw, Info } from "lucide-react";
+import { Bluetooth, BluetoothOff, RefreshCw, Info, Smartphone } from "lucide-react";
 import { toast } from "sonner";
 import { 
   connectToDevice, 
   disconnectDevice, 
   isConnected, 
-  getNetworkCompatibilityInfo 
-} from "@/lib/wifi";
+  isWebBluetoothSupported, 
+  getBrowserCompatibilityInfo 
+} from "@/lib/bluetooth";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { Input } from "@/components/ui/input";
 
-interface WiFiConnectorProps {
+interface BluetoothConnectorProps {
   onUpdateFromDevice: () => void;
 }
 
-const WiFiConnector: React.FC<WiFiConnectorProps> = ({ onUpdateFromDevice }) => {
+const BluetoothConnector: React.FC<BluetoothConnectorProps> = ({ onUpdateFromDevice }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState(isConnected());
-  const [customIP, setCustomIP] = useState("192.168.4.1");
   const [compatInfo, setCompatInfo] = useState({ 
     isCompatible: false, 
     browserName: "", 
@@ -29,7 +28,7 @@ const WiFiConnector: React.FC<WiFiConnectorProps> = ({ onUpdateFromDevice }) => 
   
   useEffect(() => {
     // Get compatibility info when component mounts
-    setCompatInfo(getNetworkCompatibilityInfo());
+    setCompatInfo(getBrowserCompatibilityInfo());
     // Set initial connection status
     setConnectionStatus(isConnected());
 
@@ -45,16 +44,20 @@ const WiFiConnector: React.FC<WiFiConnectorProps> = ({ onUpdateFromDevice }) => 
     setIsLoading(true);
     try {
       if (isConnected()) {
-        disconnectDevice();
+        await disconnectDevice();
         setConnectionStatus(false);
         toast.info("Disconnected from sensor device");
       } else {
-        const formattedIP = customIP.startsWith('http') 
-          ? customIP 
-          : `http://${customIP}`;
-        
         const success = await connectToDevice({
-          customIP: formattedIP
+          // These filter options will only show relevant sensor devices
+          // rather than all Bluetooth devices
+          filters: [
+            { services: ["environmental_sensing"] },
+            { namePrefix: "pH" },
+            { namePrefix: "Water" },
+            { namePrefix: "Sensor" },
+            { namePrefix: "Arduino" }
+          ]
         });
         
         setConnectionStatus(success);
@@ -65,12 +68,12 @@ const WiFiConnector: React.FC<WiFiConnectorProps> = ({ onUpdateFromDevice }) => 
           onUpdateFromDevice();
         } else {
           toast.error("Failed to connect to sensor device", {
-            description: "Please make sure your device is powered on and the IP address is correct."
+            description: "Please make sure your device is powered on and in range."
           });
         }
       }
     } catch (error) {
-      console.error("WiFi connection error:", error);
+      console.error("Bluetooth connection error:", error);
       toast.error("Connection error", {
         description: error instanceof Error ? error.message : "Unknown error occurred"
       });
@@ -89,11 +92,11 @@ const WiFiConnector: React.FC<WiFiConnectorProps> = ({ onUpdateFromDevice }) => 
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center text-lg">
           {connectionStatus ? (
-            <Wifi className="mr-2 h-5 w-5 text-blue-500" />
+            <Bluetooth className="mr-2 h-5 w-5 text-blue-500" />
           ) : (
-            <WifiOff className="mr-2 h-5 w-5 text-muted-foreground" />
+            <Smartphone className="mr-2 h-5 w-5 text-blue-500" />
           )}
-          WiFi Sensor Connection
+          Sensor Connection
           <Tooltip>
             <TooltipTrigger asChild>
               <Button variant="ghost" size="icon" className="ml-2 h-6 w-6">
@@ -103,8 +106,8 @@ const WiFiConnector: React.FC<WiFiConnectorProps> = ({ onUpdateFromDevice }) => 
             </TooltipTrigger>
             <TooltipContent>
               <p className="max-w-xs">
-                Connect to an ESP8266/ESP32 WiFi sensor or any HTTP-based sensor API.
-                Enter the sensor's IP address to establish a connection.
+                Connect to any Bluetooth Low Energy sensor device or direct hardware interface.
+                Works with most modern browsers and mobile devices.
               </p>
             </TooltipContent>
           </Tooltip>
@@ -113,44 +116,31 @@ const WiFiConnector: React.FC<WiFiConnectorProps> = ({ onUpdateFromDevice }) => 
       <CardContent>
         <div className="flex flex-col space-y-4">
           <p className="text-sm text-muted-foreground">
-            Connect to your WiFi sensor hardware to read real-time data from pH, temperature, and turbidity sensors.
+            Connect to your sensor hardware to read real-time data from the pH, temperature, and turbidity sensors.
             {!connectionStatus && " Currently using simulated data."}
           </p>
           
-          <div className="flex flex-col space-y-3">
-            <div className="flex items-center space-x-2">
-              <Input 
-                type="text" 
-                value={customIP} 
-                onChange={(e) => setCustomIP(e.target.value)}
-                placeholder="Sensor IP Address (e.g., 192.168.4.1)"
-                disabled={isLoading || connectionStatus}
-                className="max-w-xs"
-              />
-            </div>
+          <div className="flex space-x-2">
+            <Button 
+              onClick={handleConnect} 
+              disabled={isLoading}
+              variant={connectionStatus ? "destructive" : "default"}
+              className={connectionStatus ? "bg-destructive text-destructive-foreground hover:bg-destructive/90" : ""}
+            >
+              {isLoading ? 
+                "Connecting..." : 
+                connectionStatus ? "Disconnect" : "Connect to Sensor"}
+            </Button>
             
-            <div className="flex space-x-2">
+            {connectionStatus && (
               <Button 
-                onClick={handleConnect} 
-                disabled={isLoading}
-                variant={connectionStatus ? "destructive" : "default"}
-                className={connectionStatus ? "bg-destructive text-destructive-foreground hover:bg-destructive/90" : ""}
+                onClick={handleReadSensors} 
+                variant="outline"
               >
-                {isLoading ? 
-                  "Connecting..." : 
-                  connectionStatus ? "Disconnect" : "Connect to Sensor"}
+                <RefreshCw className="mr-2 h-4 w-4" />
+                Read Sensors
               </Button>
-              
-              {connectionStatus && (
-                <Button 
-                  onClick={handleReadSensors} 
-                  variant="outline"
-                >
-                  <RefreshCw className="mr-2 h-4 w-4" />
-                  Read Sensors
-                </Button>
-              )}
-            </div>
+            )}
           </div>
         </div>
       </CardContent>
@@ -158,4 +148,4 @@ const WiFiConnector: React.FC<WiFiConnectorProps> = ({ onUpdateFromDevice }) => 
   );
 };
 
-export default WiFiConnector;
+export default BluetoothConnector;
