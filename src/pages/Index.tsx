@@ -1,9 +1,8 @@
-
 import { useState, useEffect } from "react";
 import { SensorData, getWaterUseRecommendation, simulateSensorReading } from "@/lib/sensors";
 import { toast } from "sonner";
 import { getGeminiApiKey } from "@/lib/env";
-import { readSensorData, isConnected } from "@/lib/bluetooth";
+import { readSensorData, isConnected } from "@/lib/wifi";
 
 // Components
 import DashboardHeader from "@/components/dashboard/Header";
@@ -13,7 +12,7 @@ import WaterQualityCard from "@/components/dashboard/WaterQualityCard";
 import HistoricalChart from "@/components/dashboard/HistoricalChart";
 import ChatSection from "@/components/dashboard/ChatSection";
 import DashboardFooter from "@/components/dashboard/Footer";
-import BluetoothConnector from "@/components/dashboard/BluetoothConnector";
+import WiFiConnector from "@/components/dashboard/WiFiConnector";
 
 const Index = () => {
   const [sensorData, setSensorData] = useState<SensorData>({
@@ -47,19 +46,19 @@ const Index = () => {
   }, [sensorData]);
   
   const updateSensorData = async () => {
-    // Try to read from Bluetooth device if connected
+    // Try to read from WiFi device if connected
     if (isConnected()) {
       const deviceData = await readSensorData();
       if (deviceData) {
         setSensorData(deviceData);
-        toast.success("Sensor data updated from Arduino device", { 
+        toast.success("Sensor data updated from WiFi device", { 
           description: `Timestamp: ${new Date(deviceData.timestamp).toLocaleTimeString()}` 
         });
         return;
       }
     }
     
-    // Fall back to simulated data if no Bluetooth connection
+    // Fall back to simulated data if no WiFi connection
     const newData = simulateSensorReading();
     setSensorData(newData);
     toast.success("Sensor data updated (simulated)", { 
@@ -74,7 +73,7 @@ const Index = () => {
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
           <div className="lg:col-span-2 space-y-4 lg:space-y-6">
-            <BluetoothConnector onUpdateFromDevice={updateSensorData} />
+            <WiFiConnector onUpdateFromDevice={updateSensorData} />
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
               <PhCard phValue={sensorData.ph} />
