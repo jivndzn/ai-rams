@@ -48,7 +48,18 @@ const BluetoothConnector: React.FC<BluetoothConnectorProps> = ({ onUpdateFromDev
         setConnectionStatus(false);
         toast.info("Disconnected from sensor device");
       } else {
-        const success = await connectToDevice();
+        const success = await connectToDevice({
+          // These filter options will only show relevant sensor devices
+          // rather than all Bluetooth devices
+          filters: [
+            { services: ["environmental_sensing"] },
+            { namePrefix: "pH" },
+            { namePrefix: "Water" },
+            { namePrefix: "Sensor" },
+            { namePrefix: "Arduino" }
+          ]
+        });
+        
         setConnectionStatus(success);
         
         // After successful connection, read sensor data

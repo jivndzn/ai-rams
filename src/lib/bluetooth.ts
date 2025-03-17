@@ -20,6 +20,12 @@ interface BluetoothState {
   universalFallback: boolean; // Added to handle universal fallback
 }
 
+// Connection options interface
+interface ConnectionOptions {
+  filters?: BluetoothLEScanFilter[];
+  acceptAllDevices?: boolean;
+}
+
 // Initialize the Bluetooth state
 const bluetoothState: BluetoothState = {
   device: null,
@@ -68,19 +74,27 @@ export const getBrowserCompatibilityInfo = (): {
 };
 
 // Connect to a Bluetooth device - with universal fallback for all browsers
-export const connectToDevice = async (): Promise<boolean> => {
+export const connectToDevice = async (options: ConnectionOptions = {}): Promise<boolean> => {
   try {
     const nativeBluetoothSupported = isWebBluetoothSupported();
     
     // Try native Web Bluetooth if supported
     if (nativeBluetoothSupported) {
       try {
-        // Request the device with the specific service
-        const device = await navigator.bluetooth.requestDevice({
-          // Accept all devices for broader compatibility
-          acceptAllDevices: true,
+        // Set default request options if not provided
+        const requestOptions: RequestDeviceOptions = {
+          // If no filters provided, accept all devices
+          acceptAllDevices: options.filters ? false : true,
           optionalServices: [SENSOR_SERVICE_UUID]
-        });
+        };
+
+        // Add filters if provided
+        if (options.filters && options.filters.length > 0) {
+          requestOptions.filters = options.filters;
+        }
+
+        // Request the device with the specific service
+        const device = await navigator.bluetooth.requestDevice(requestOptions);
 
         // Add event listener for disconnection
         device.addEventListener('gattserverdisconnected', onDisconnected);
