@@ -68,15 +68,15 @@ const Index = () => {
   };
   
   return (
-    <div className="min-h-screen bg-background p-4 md:p-8">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen w-full bg-background">
+      <div className="max-w-full mx-auto p-4 md:p-6">
         <DashboardHeader />
         
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+          <div className="lg:col-span-2 space-y-4 lg:space-y-6">
             <BluetoothConnector onUpdateFromDevice={updateSensorData} />
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
               <PhCard phValue={sensorData.ph} />
               <TemperatureCard temperatureValue={sensorData.temperature} />
             </div>

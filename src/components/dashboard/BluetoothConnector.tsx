@@ -18,6 +18,7 @@ interface BluetoothConnectorProps {
 
 const BluetoothConnector: React.FC<BluetoothConnectorProps> = ({ onUpdateFromDevice }) => {
   const [isLoading, setIsLoading] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState(isConnected());
   const [compatInfo, setCompatInfo] = useState({ 
     isCompatible: false, 
     browserName: "", 
@@ -27,35 +28,58 @@ const BluetoothConnector: React.FC<BluetoothConnectorProps> = ({ onUpdateFromDev
   useEffect(() => {
     // Get compatibility info when component mounts
     setCompatInfo(getBrowserCompatibilityInfo());
+    // Set initial connection status
+    setConnectionStatus(isConnected());
+
+    // Add an interval to check connection status periodically
+    const interval = setInterval(() => {
+      setConnectionStatus(isConnected());
+    }, 5000);
+
+    return () => clearInterval(interval);
   }, []);
 
   const handleConnect = async () => {
     setIsLoading(true);
     try {
       if (isConnected()) {
-        disconnectDevice();
+        await disconnectDevice();
+        setConnectionStatus(false);
+        toast.info("Disconnected from sensor device");
       } else {
-        await connectToDevice();
+        const success = await connectToDevice();
+        setConnectionStatus(success);
+        
         // After successful connection, read sensor data
-        if (isConnected()) {
+        if (success) {
+          toast.success("Successfully connected to sensor device");
           onUpdateFromDevice();
+        } else {
+          toast.error("Failed to connect to sensor device", {
+            description: "Please make sure your device is powered on and in range."
+          });
         }
       }
+    } catch (error) {
+      console.error("Bluetooth connection error:", error);
+      toast.error("Connection error", {
+        description: error instanceof Error ? error.message : "Unknown error occurred"
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleReadSensors = () => {
+    toast.info("Reading sensor data...");
     onUpdateFromDevice();
   };
 
-  // Show universal connector even if Web Bluetooth isn't supported
   return (
-    <Card className="mb-6">
+    <Card className="mb-4 lg:mb-6">
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center text-lg">
-          {compatInfo.isCompatible ? (
+          {connectionStatus ? (
             <Bluetooth className="mr-2 h-5 w-5 text-blue-500" />
           ) : (
             <Smartphone className="mr-2 h-5 w-5 text-blue-500" />
@@ -81,21 +105,22 @@ const BluetoothConnector: React.FC<BluetoothConnectorProps> = ({ onUpdateFromDev
         <div className="flex flex-col space-y-4">
           <p className="text-sm text-muted-foreground">
             Connect to your sensor hardware to read real-time data from the pH, temperature, and turbidity sensors.
-            {!compatInfo.isCompatible && " Currently using simulated data."}
+            {!connectionStatus && " Currently using simulated data."}
           </p>
           
           <div className="flex space-x-2">
             <Button 
               onClick={handleConnect} 
               disabled={isLoading}
-              variant={isConnected() ? "destructive" : "default"}
+              variant={connectionStatus ? "destructive" : "default"}
+              className={connectionStatus ? "bg-destructive text-destructive-foreground hover:bg-destructive/90" : ""}
             >
               {isLoading ? 
                 "Connecting..." : 
-                isConnected() ? "Disconnect" : "Connect to Sensor"}
+                connectionStatus ? "Disconnect" : "Connect to Sensor"}
             </Button>
             
-            {isConnected() && (
+            {connectionStatus && (
               <Button 
                 onClick={handleReadSensors} 
                 variant="outline"
