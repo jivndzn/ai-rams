@@ -95,19 +95,24 @@ export const connectToDevice = async (options: ConnectionOptions = {}): Promise<
     
     // Set default request options if not provided
     const requestOptions: RequestDeviceOptions = {
-      acceptAllDevices: options.acceptAllDevices || false,
-      filters: options.filters || [
-        { namePrefix: "Arduino" },
-        { namePrefix: "pH" },
-        { namePrefix: "Water" },
-        { namePrefix: "Sensor" }
-      ],
       optionalServices: [
         ENVIRONMENTAL_SENSING_SERVICE,
         ARDUINO_SERVICE,
         GENERIC_SERVICE
       ]
     };
+
+    // Use either acceptAllDevices OR filters, not both
+    if (options.acceptAllDevices) {
+      requestOptions.acceptAllDevices = true;
+    } else {
+      requestOptions.filters = options.filters || [
+        { namePrefix: "Arduino" },
+        { namePrefix: "pH" },
+        { namePrefix: "Water" },
+        { namePrefix: "Sensor" }
+      ];
+    }
 
     // Request the device
     toast.info("Searching for Arduino devices...");

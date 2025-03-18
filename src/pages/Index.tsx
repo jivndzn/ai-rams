@@ -1,10 +1,9 @@
-
 import { useState, useEffect } from "react";
 import { SensorData, getWaterUseRecommendation, simulateSensorReading } from "@/lib/sensors";
 import { toast } from "sonner";
 import { getGeminiApiKey } from "@/lib/env";
 import { readSensorData, isConnected } from "@/lib/bluetooth";
-import { saveSensorReading, getLatestSensorReadings } from "@/lib/supabase";
+import { saveSensorReading, getLatestSensorReadings, SensorReading } from "@/lib/supabase";
 
 // Components
 import DashboardHeader from "@/components/dashboard/Header";
@@ -30,8 +29,13 @@ const Index = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   
   useEffect(() => {
-    updateSensorData();
-    loadHistoricalData();
+    // Load historical data first
+    loadHistoricalData().then(() => {
+      // Only update with simulated data if we don't have historical data
+      if (historicalData.length === 0) {
+        updateSensorData();
+      }
+    });
     
     const interval = setInterval(() => {
       updateSensorData();
@@ -44,10 +48,15 @@ const Index = () => {
     const recommendation = getWaterUseRecommendation(sensorData.ph);
     setRecommendation(recommendation);
     
-    setHistoricalData(prev => {
-      const newData = [...prev, sensorData].slice(-24);
-      return newData;
-    });
+    // Only add to historical data if this is new data
+    // (prevents duplicating data when component re-renders)
+    if (historicalData.length === 0 || 
+        sensorData.timestamp !== historicalData[historicalData.length - 1].timestamp) {
+      setHistoricalData(prev => {
+        const newData = [...prev, sensorData].slice(-24);
+        return newData;
+      });
+    }
   }, [sensorData]);
   
   const loadHistoricalData = async () => {
@@ -58,13 +67,21 @@ const Index = () => {
       if (readings.length > 0) {
         // Convert Supabase data to SensorData format
         const historicalReadings: SensorData[] = readings.map(reading => ({
-          ph: reading.ph,
+          ph: reading.pH, // Note the capitalization here - matches Supabase column
           temperature: reading.temperature,
           quality: reading.quality,
           timestamp: reading.created_at ? new Date(reading.created_at).getTime() : Date.now(),
         }));
         
         setHistoricalData(historicalReadings);
+        
+        // Update current sensor data with the most recent reading
+        const mostRecent = historicalReadings[0];
+        if (mostRecent) {
+          setSensorData(mostRecent);
+          setLastUpdateSource(mostRecent.data_source === "arduino_uno" ? "arduino" : "simulated");
+        }
+        
         toast.success("Loaded historical sensor data", {
           description: `Loaded ${readings.length} readings from database`
         });
@@ -75,40 +92,70 @@ const Index = () => {
       }
     } catch (error) {
       console.error("Failed to load historical data:", error);
-      toast.error("Failed to load historical data");
+      toast.error("Failed to load historical data", {
+        description: error instanceof Error ? error.message : "Unknown error"
+      });
     } finally {
       setIsLoading(false);
     }
+    
+    return historicalData.length > 0;
   };
   
   const updateSensorData = async () => {
-    // Try to read from Bluetooth device if connected
-    if (isConnected()) {
-      const deviceData = await readSensorData();
-      if (deviceData) {
-        setSensorData(deviceData);
-        setLastUpdateSource("arduino");
-        toast.success("Sensor data updated from Arduino device", { 
-          description: `Timestamp: ${new Date(deviceData.timestamp).toLocaleTimeString()}` 
-        });
-        
-        // Save the Arduino data to Supabase
-        const saved = await saveSensorReading(deviceData, "arduino");
-        if (saved) {
-          toast.success("Sensor data saved to database");
+    try {
+      // Try to read from Bluetooth device if connected
+      if (isConnected()) {
+        try {
+          const deviceData = await readSensorData();
+          if (deviceData) {
+            // Add timestamp if not present
+            if (!deviceData.timestamp) {
+              deviceData.timestamp = Date.now();
+            }
+            
+            setSensorData(deviceData);
+            setLastUpdateSource("arduino");
+            
+            // Save the Arduino data to Supabase
+            const saved = await saveSensorReading(deviceData, "arduino_uno");
+            if (saved) {
+              toast.success("New sensor data received and saved", {
+                description: `From Arduino at ${new Date().toLocaleTimeString()}`
+              });
+            }
+            
+            return;
+          }
+        } catch (err) {
+          console.error("Failed to read from Arduino:", err);
+          toast.error("Failed to read from Arduino", {
+            description: "Falling back to simulated data"
+          });
         }
-        
-        return;
       }
+      
+      // Fall back to simulated data if no Bluetooth connection or reading failed
+      const newData = simulateSensorReading();
+      setSensorData(newData);
+      setLastUpdateSource("simulated");
+      
+      // Don't toast for simulated data to reduce notification noise
+      // Only show notification when debugging
+      if (process.env.NODE_ENV === "development") {
+        toast.info("Using simulated sensor data", { 
+          description: `No device connected at ${new Date().toLocaleTimeString()}` 
+        });
+      }
+    } catch (error) {
+      console.error("Error updating sensor data:", error);
+      toast.error("Failed to update sensor data");
     }
-    
-    // Fall back to simulated data if no Bluetooth connection
-    const newData = simulateSensorReading();
-    setSensorData(newData);
-    setLastUpdateSource("simulated");
-    toast.info("Sensor data updated (simulated)", { 
-      description: `Timestamp: ${new Date(newData.timestamp).toLocaleTimeString()}` 
-    });
+  };
+  
+  const handleManualRefresh = () => {
+    toast.info("Refreshing sensor data...");
+    updateSensorData();
   };
   
   return (
@@ -128,9 +175,10 @@ const Index = () => {
             <WaterQualityCard 
               qualityValue={sensorData.quality}
               recommendation={recommendation}
-              onUpdateReadings={updateSensorData}
+              onUpdateReadings={handleManualRefresh}
               dataSource={lastUpdateSource === "arduino" ? "Arduino device" : "Simulation"}
               onRefreshHistory={loadHistoricalData}
+              lastUpdated={new Date(sensorData.timestamp).toLocaleString()}
             />
             
             <HistoricalChart 
