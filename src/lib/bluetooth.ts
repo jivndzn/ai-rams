@@ -1,3 +1,4 @@
+
 import { toast } from "sonner";
 import { SensorData, simulateSensorReading } from "./sensors";
 
@@ -94,12 +95,12 @@ export const connectToDevice = async (options: ConnectionOptions = {}): Promise<
     
     // Set default request options if not provided
     const requestOptions: RequestDeviceOptions = {
+      acceptAllDevices: options.acceptAllDevices || false,
       filters: options.filters || [
-        { services: [ENVIRONMENTAL_SENSING_SERVICE] },
-        { services: [ARDUINO_SERVICE] },
         { namePrefix: "Arduino" },
         { namePrefix: "pH" },
-        { namePrefix: "Water" }
+        { namePrefix: "Water" },
+        { namePrefix: "Sensor" }
       ],
       optionalServices: [
         ENVIRONMENTAL_SENSING_SERVICE,

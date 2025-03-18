@@ -8,7 +8,8 @@ import {
   RefreshCw, 
   Info, 
   Smartphone,
-  AlertCircle 
+  AlertCircle,
+  Search
 } from "lucide-react";
 import { toast } from "sonner";
 import { 
@@ -24,6 +25,8 @@ import {
   TooltipTrigger 
 } from "@/components/ui/tooltip";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 interface BluetoothConnectorProps {
   onUpdateFromDevice: () => void;
@@ -38,6 +41,7 @@ const BluetoothConnector: React.FC<BluetoothConnectorProps> = ({ onUpdateFromDev
     message: "" 
   });
   const [hasError, setHasError] = useState(false);
+  const [acceptAllDevices, setAcceptAllDevices] = useState(false);
   
   useEffect(() => {
     // Get compatibility info when component mounts
@@ -69,14 +73,14 @@ const BluetoothConnector: React.FC<BluetoothConnectorProps> = ({ onUpdateFromDev
         toast.info("Disconnected from sensor device");
       } else {
         const success = await connectToDevice({
-          // These filter options will show Arduino-specific devices
-          filters: [
-            { services: ["0000181a-0000-1000-8000-00805f9b34fb"] }, // Environmental sensing
+          // If accept all devices is enabled, we use that instead of filters
+          acceptAllDevices: acceptAllDevices,
+          filters: !acceptAllDevices ? [
             { namePrefix: "Arduino" },
             { namePrefix: "pH" },
             { namePrefix: "Water" },
             { namePrefix: "Sensor" }
-          ]
+          ] : undefined
         });
         
         setConnectionStatus(success);
@@ -162,6 +166,27 @@ const BluetoothConnector: React.FC<BluetoothConnectorProps> = ({ onUpdateFromDev
             {!connectionStatus && " Currently using simulated data."}
           </p>
           
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="accept-all"
+              checked={acceptAllDevices}
+              onCheckedChange={setAcceptAllDevices}
+            />
+            <Label htmlFor="accept-all">Show all Bluetooth devices</Label>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-6 w-6">
+                  <Info className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p className="max-w-xs">
+                  Enable this option to see all available Bluetooth devices, not just those with Arduino-specific names.
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
+          
           <div className="flex space-x-2">
             <Button 
               onClick={handleConnect} 
@@ -169,9 +194,22 @@ const BluetoothConnector: React.FC<BluetoothConnectorProps> = ({ onUpdateFromDev
               variant={connectionStatus ? "destructive" : "default"}
               className={connectionStatus ? "bg-destructive text-destructive-foreground hover:bg-destructive/90" : ""}
             >
-              {isLoading ? 
-                "Connecting..." : 
-                connectionStatus ? "Disconnect" : "Connect to Arduino"}
+              {isLoading ? (
+                <>
+                  <Search className="mr-2 h-4 w-4 animate-spin" />
+                  Scanning...
+                </>
+              ) : connectionStatus ? (
+                <>
+                  <BluetoothOff className="mr-2 h-4 w-4" />
+                  Disconnect
+                </>
+              ) : (
+                <>
+                  <Bluetooth className="mr-2 h-4 w-4" />
+                  Connect to Arduino
+                </>
+              )}
             </Button>
             
             {connectionStatus && (
