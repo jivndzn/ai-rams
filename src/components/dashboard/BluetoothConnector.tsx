@@ -2,7 +2,14 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Bluetooth, BluetoothOff, RefreshCw, Info, Smartphone } from "lucide-react";
+import { 
+  Bluetooth, 
+  BluetoothOff, 
+  RefreshCw, 
+  Info, 
+  Smartphone,
+  AlertCircle 
+} from "lucide-react";
 import { toast } from "sonner";
 import { 
   connectToDevice, 
@@ -11,7 +18,12 @@ import {
   isWebBluetoothSupported, 
   getBrowserCompatibilityInfo 
 } from "@/lib/bluetooth";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { 
+  Tooltip, 
+  TooltipContent, 
+  TooltipTrigger 
+} from "@/components/ui/tooltip";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
 interface BluetoothConnectorProps {
   onUpdateFromDevice: () => void;
@@ -25,6 +37,7 @@ const BluetoothConnector: React.FC<BluetoothConnectorProps> = ({ onUpdateFromDev
     browserName: "", 
     message: "" 
   });
+  const [hasError, setHasError] = useState(false);
   
   useEffect(() => {
     // Get compatibility info when component mounts
@@ -34,7 +47,12 @@ const BluetoothConnector: React.FC<BluetoothConnectorProps> = ({ onUpdateFromDev
 
     // Add an interval to check connection status periodically
     const interval = setInterval(() => {
-      setConnectionStatus(isConnected());
+      const connected = isConnected();
+      setConnectionStatus(connected);
+      // Clear error state if we're connected
+      if (connected) {
+        setHasError(false);
+      }
     }, 5000);
 
     return () => clearInterval(interval);
@@ -42,6 +60,8 @@ const BluetoothConnector: React.FC<BluetoothConnectorProps> = ({ onUpdateFromDev
 
   const handleConnect = async () => {
     setIsLoading(true);
+    setHasError(false);
+    
     try {
       if (isConnected()) {
         await disconnectDevice();
@@ -49,32 +69,33 @@ const BluetoothConnector: React.FC<BluetoothConnectorProps> = ({ onUpdateFromDev
         toast.info("Disconnected from sensor device");
       } else {
         const success = await connectToDevice({
-          // These filter options will only show relevant sensor devices
-          // rather than all Bluetooth devices
+          // These filter options will show Arduino-specific devices
           filters: [
-            { services: ["environmental_sensing"] },
+            { services: ["0000181a-0000-1000-8000-00805f9b34fb"] }, // Environmental sensing
+            { namePrefix: "Arduino" },
             { namePrefix: "pH" },
             { namePrefix: "Water" },
-            { namePrefix: "Sensor" },
-            { namePrefix: "Arduino" }
+            { namePrefix: "Sensor" }
           ]
         });
         
         setConnectionStatus(success);
+        setHasError(!success);
         
         // After successful connection, read sensor data
         if (success) {
-          toast.success("Successfully connected to sensor device");
+          toast.success("Successfully connected to Arduino device");
           onUpdateFromDevice();
         } else {
-          toast.error("Failed to connect to sensor device", {
-            description: "Please make sure your device is powered on and in range."
+          toast.error("Bluetooth unsuccessful", {
+            description: "Could not connect to Arduino device. Make sure it's powered on and in range."
           });
         }
       }
     } catch (error) {
       console.error("Bluetooth connection error:", error);
-      toast.error("Connection error", {
+      setHasError(true);
+      toast.error("Bluetooth unsuccessful", {
         description: error instanceof Error ? error.message : "Unknown error occurred"
       });
     } finally {
@@ -96,7 +117,7 @@ const BluetoothConnector: React.FC<BluetoothConnectorProps> = ({ onUpdateFromDev
           ) : (
             <Smartphone className="mr-2 h-5 w-5 text-blue-500" />
           )}
-          Sensor Connection
+          Arduino Connection
           <Tooltip>
             <TooltipTrigger asChild>
               <Button variant="ghost" size="icon" className="ml-2 h-6 w-6">
@@ -106,8 +127,8 @@ const BluetoothConnector: React.FC<BluetoothConnectorProps> = ({ onUpdateFromDev
             </TooltipTrigger>
             <TooltipContent>
               <p className="max-w-xs">
-                Connect to any Bluetooth Low Energy sensor device or direct hardware interface.
-                Works with most modern browsers and mobile devices.
+                Connect to any Arduino BLE device with environmental sensing capabilities.
+                Data will be stored in Supabase once connected.
               </p>
             </TooltipContent>
           </Tooltip>
@@ -115,21 +136,42 @@ const BluetoothConnector: React.FC<BluetoothConnectorProps> = ({ onUpdateFromDev
       </CardHeader>
       <CardContent>
         <div className="flex flex-col space-y-4">
+          {!compatInfo.isCompatible && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Browser not compatible</AlertTitle>
+              <AlertDescription>
+                {compatInfo.message}
+              </AlertDescription>
+            </Alert>
+          )}
+          
+          {hasError && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Bluetooth unsuccessful</AlertTitle>
+              <AlertDescription>
+                Could not connect to Arduino device. Please ensure your device is powered on, 
+                in range, and has the correct Bluetooth service enabled.
+              </AlertDescription>
+            </Alert>
+          )}
+          
           <p className="text-sm text-muted-foreground">
-            Connect to your sensor hardware to read real-time data from the pH, temperature, and turbidity sensors.
+            Connect to your Arduino sensor to read real-time data from the pH, temperature, and turbidity sensors.
             {!connectionStatus && " Currently using simulated data."}
           </p>
           
           <div className="flex space-x-2">
             <Button 
               onClick={handleConnect} 
-              disabled={isLoading}
+              disabled={isLoading || !compatInfo.isCompatible}
               variant={connectionStatus ? "destructive" : "default"}
               className={connectionStatus ? "bg-destructive text-destructive-foreground hover:bg-destructive/90" : ""}
             >
               {isLoading ? 
                 "Connecting..." : 
-                connectionStatus ? "Disconnect" : "Connect to Sensor"}
+                connectionStatus ? "Disconnect" : "Connect to Arduino"}
             </Button>
             
             {connectionStatus && (

@@ -3,21 +3,24 @@ import { toast } from "sonner";
 import { SensorData, simulateSensorReading } from "./sensors";
 
 // Define the Bluetooth Service and Characteristic UUIDs
-// These should match what's configured on your Arduino
-const SENSOR_SERVICE_UUID = "0000181a-0000-1000-8000-00805f9b34fb"; // Environmental Sensing service
+// Standard UUIDs for Arduino and environmental sensing
+const ENVIRONMENTAL_SENSING_SERVICE = "0000181a-0000-1000-8000-00805f9b34fb";
+const ARDUINO_SERVICE = "19b10000-e8f2-537e-4f6c-d104768a1214"; // Common Arduino BLE service
+const GENERIC_SERVICE = "1800"; // Generic Access service for fallback
+
+// Characteristic UUIDs
 const PH_CHARACTERISTIC_UUID = "00002a6e-0000-1000-8000-00805f9b34fb"; // pH level
 const TEMPERATURE_CHARACTERISTIC_UUID = "00002a6e-0000-1000-8000-00805f9b34fb"; // Temperature
 const TURBIDITY_CHARACTERISTIC_UUID = "00002a6e-0000-1000-8000-00805f9b34fb"; // Turbidity (quality)
 
 interface BluetoothState {
-  device: globalThis.BluetoothDevice | null;
+  device: BluetoothDevice | null;
   server: BluetoothRemoteGATTServer | null;
   service: BluetoothRemoteGATTService | null;
   phCharacteristic: BluetoothRemoteGATTCharacteristic | null;
   temperatureCharacteristic: BluetoothRemoteGATTCharacteristic | null;
   turbidityCharacteristic: BluetoothRemoteGATTCharacteristic | null;
   connected: boolean;
-  universalFallback: boolean; // Added to handle universal fallback
 }
 
 // Connection options interface
@@ -34,8 +37,7 @@ const bluetoothState: BluetoothState = {
   phCharacteristic: null,
   temperatureCharacteristic: null,
   turbidityCharacteristic: null,
-  connected: false,
-  universalFallback: false
+  connected: false
 };
 
 // Check if Web Bluetooth API is supported by the browser
@@ -52,111 +54,142 @@ export const getBrowserCompatibilityInfo = (): {
 } => {
   const ua = navigator.userAgent;
   let browserName = "Unknown";
+  let isCompatible = false;
   
   // Detect browser
   if (ua.includes("Chrome") && !ua.includes("Edg")) {
     browserName = "Chrome";
+    isCompatible = true;
   } else if (ua.includes("Edg")) {
     browserName = "Edge";
-  } else if (ua.includes("Firefox")) {
-    browserName = "Firefox";
-  } else if (ua.includes("Safari") && !ua.includes("Chrome")) {
-    browserName = "Safari";
+    isCompatible = true;
   } else if (ua.includes("Opera") || ua.includes("OPR")) {
     browserName = "Opera";
+    isCompatible = true;
+  } else if (ua.includes("Firefox")) {
+    browserName = "Firefox";
+    isCompatible = false;
+  } else if (ua.includes("Safari") && !ua.includes("Chrome")) {
+    browserName = "Safari";
+    isCompatible = false;
   }
 
-  // We'll report compatibility based on our universal approach
-  const isCompatible = true;
-  let message = "Universal sensor connectivity is available. Connect to any sensor device.";
+  const message = isCompatible 
+    ? "Your browser supports Bluetooth connectivity."
+    : "Your browser doesn't support WebBluetooth API. Please use Chrome, Edge or Opera.";
 
   return { isCompatible, browserName, message };
 };
 
-// Connect to a Bluetooth device - with universal fallback for all browsers
+// Connect to an Arduino Bluetooth device
 export const connectToDevice = async (options: ConnectionOptions = {}): Promise<boolean> => {
   try {
-    const nativeBluetoothSupported = isWebBluetoothSupported();
+    const { isCompatible } = getBrowserCompatibilityInfo();
     
-    // Try native Web Bluetooth if supported
-    if (nativeBluetoothSupported) {
-      try {
-        // Set default request options if not provided
-        const requestOptions: RequestDeviceOptions = {
-          // If no filters provided, accept all devices
-          acceptAllDevices: options.filters ? false : true,
-          optionalServices: [SENSOR_SERVICE_UUID]
-        };
-
-        // Add filters if provided
-        if (options.filters && options.filters.length > 0) {
-          requestOptions.filters = options.filters;
-        }
-
-        // Request the device with the specific service
-        const device = await navigator.bluetooth.requestDevice(requestOptions);
-
-        // Add event listener for disconnection
-        device.addEventListener('gattserverdisconnected', onDisconnected);
-
-        toast.info("Connecting to device...");
-        
-        // Connect to the GATT server
-        const server = await device.gatt?.connect();
-        if (!server) {
-          throw new Error("Failed to connect to GATT server");
-        }
-
-        // Get the service
-        const service = await server.getPrimaryService(SENSOR_SERVICE_UUID);
-        
-        // Get characteristics
-        const phCharacteristic = await service.getCharacteristic(PH_CHARACTERISTIC_UUID);
-        const temperatureCharacteristic = await service.getCharacteristic(TEMPERATURE_CHARACTERISTIC_UUID);
-        const turbidityCharacteristic = await service.getCharacteristic(TURBIDITY_CHARACTERISTIC_UUID);
-        
-        // Save to state
-        bluetoothState.device = device;
-        bluetoothState.server = server;
-        bluetoothState.service = service;
-        bluetoothState.phCharacteristic = phCharacteristic;
-        bluetoothState.temperatureCharacteristic = temperatureCharacteristic;
-        bluetoothState.turbidityCharacteristic = turbidityCharacteristic;
-        bluetoothState.connected = true;
-        bluetoothState.universalFallback = false;
-        
-        toast.success(`Connected to ${device.name || "Arduino Sensor"}`);
-        return true;
-      } catch (error) {
-        console.error("Native Bluetooth connection error:", error);
-        // Fall back to universal method if native method fails
-        return connectWithUniversalFallback();
-      }
-    } else {
-      // Use universal fallback for unsupported browsers
-      return connectWithUniversalFallback();
+    if (!isCompatible) {
+      toast.error("Browser not compatible", {
+        description: "Your browser doesn't support Bluetooth. Please use Chrome, Edge or Opera."
+      });
+      return false;
     }
-  } catch (error) {
-    console.error("Bluetooth connection error:", error);
-    return false;
-  }
-};
+    
+    // Set default request options if not provided
+    const requestOptions: RequestDeviceOptions = {
+      // If no filters provided, use our Arduino-specific filters
+      filters: options.filters || [
+        { services: [ENVIRONMENTAL_SENSING_SERVICE] },
+        { services: [ARDUINO_SERVICE] },
+        { namePrefix: "Arduino" },
+        { namePrefix: "pH" },
+        { namePrefix: "Water" }
+      ],
+      optionalServices: [
+        ENVIRONMENTAL_SENSING_SERVICE,
+        ARDUINO_SERVICE,
+        GENERIC_SERVICE
+      ]
+    };
 
-// Universal fallback connection method for any browser
-const connectWithUniversalFallback = (): boolean => {
-  try {
-    // Simulate connection with universal method
-    toast.success("Connected to sensor via universal interface");
+    // Request the device
+    toast.info("Searching for Arduino devices...");
     
-    // Set our state to connected using the fallback
+    const device = await navigator.bluetooth.requestDevice(requestOptions);
+
+    // Add event listener for disconnection
+    device.addEventListener('gattserverdisconnected', onDisconnected);
+
+    toast.info(`Connecting to ${device.name || "Arduino"}...`);
+    
+    // Connect to the GATT server
+    const server = await device.gatt?.connect();
+    if (!server) {
+      throw new Error("Failed to connect to GATT server");
+    }
+
+    // Try to get the primary services in order of preference
+    let service: BluetoothRemoteGATTService | null = null;
+    
+    try {
+      service = await server.getPrimaryService(ENVIRONMENTAL_SENSING_SERVICE);
+      console.log("Connected to Environmental Sensing service");
+    } catch (e) {
+      try {
+        service = await server.getPrimaryService(ARDUINO_SERVICE);
+        console.log("Connected to Arduino service");
+      } catch (e2) {
+        try {
+          service = await server.getPrimaryService(GENERIC_SERVICE);
+          console.log("Connected to Generic service");
+        } catch (e3) {
+          throw new Error("No compatible services found on device");
+        }
+      }
+    }
+    
+    if (!service) {
+      throw new Error("Could not connect to any compatible service");
+    }
+    
+    // Get characteristics - use try/catch for each to handle possible missing characteristics
+    let phCharacteristic = null;
+    let temperatureCharacteristic = null;
+    let turbidityCharacteristic = null;
+    
+    try {
+      phCharacteristic = await service.getCharacteristic(PH_CHARACTERISTIC_UUID);
+    } catch (e) {
+      console.warn("pH characteristic not found");
+    }
+    
+    try {
+      temperatureCharacteristic = await service.getCharacteristic(TEMPERATURE_CHARACTERISTIC_UUID);
+    } catch (e) {
+      console.warn("Temperature characteristic not found");
+    }
+    
+    try {
+      turbidityCharacteristic = await service.getCharacteristic(TURBIDITY_CHARACTERISTIC_UUID);
+    } catch (e) {
+      console.warn("Turbidity characteristic not found");
+    }
+    
+    // Save to state
+    bluetoothState.device = device;
+    bluetoothState.server = server;
+    bluetoothState.service = service;
+    bluetoothState.phCharacteristic = phCharacteristic;
+    bluetoothState.temperatureCharacteristic = temperatureCharacteristic;
+    bluetoothState.turbidityCharacteristic = turbidityCharacteristic;
     bluetoothState.connected = true;
-    bluetoothState.universalFallback = true;
     
+    toast.success(`Connected to ${device.name || "Arduino Sensor"}`);
     return true;
   } catch (error) {
-    console.error("Universal connection error:", error);
-    toast.error("Connection failed", {
-      description: "Could not connect to sensor device"
+    console.error("Bluetooth connection error:", error);
+    toast.error("Bluetooth unsuccessful", {
+      description: error instanceof Error 
+        ? error.message 
+        : "Could not connect to Arduino device. Make sure it's powered on and in range."
     });
     return false;
   }
@@ -165,7 +198,7 @@ const connectWithUniversalFallback = (): boolean => {
 // Disconnect from the device
 export const disconnectDevice = (): void => {
   if (bluetoothState.connected) {
-    if (!bluetoothState.universalFallback && bluetoothState.server) {
+    if (bluetoothState.server) {
       bluetoothState.server.disconnect();
     }
     resetBluetoothState();
@@ -188,7 +221,6 @@ const resetBluetoothState = (): void => {
   bluetoothState.temperatureCharacteristic = null;
   bluetoothState.turbidityCharacteristic = null;
   bluetoothState.connected = false;
-  bluetoothState.universalFallback = false;
 };
 
 // Check if currently connected
@@ -204,36 +236,51 @@ export const readSensorData = async (): Promise<SensorData | null> => {
       return null;
     }
 
-    // If using universal fallback, return simulated data
-    if (bluetoothState.universalFallback) {
-      const simulatedData = simulateSensorReading();
-      return simulatedData;
+    let phValue = 7.0;
+    let temperature = 22.0;
+    let quality = 75;
+    
+    // Try to read each value, falling back to defaults if a characteristic is missing
+    // or if reading fails
+    
+    if (bluetoothState.phCharacteristic) {
+      try {
+        const value = await bluetoothState.phCharacteristic.readValue();
+        phValue = parseFloat(new TextDecoder().decode(value)) || phValue;
+      } catch (e) {
+        console.warn("Failed to read pH value", e);
+      }
     }
-
-    // Read pH value
-    const phValue = await bluetoothState.phCharacteristic?.readValue();
-    const ph = phValue ? parseFloat(new TextDecoder().decode(phValue)) : 7.0;
     
-    // Read temperature value
-    const tempValue = await bluetoothState.temperatureCharacteristic?.readValue();
-    const temperature = tempValue ? parseFloat(new TextDecoder().decode(tempValue)) : 22.0;
+    if (bluetoothState.temperatureCharacteristic) {
+      try {
+        const value = await bluetoothState.temperatureCharacteristic.readValue();
+        temperature = parseFloat(new TextDecoder().decode(value)) || temperature;
+      } catch (e) {
+        console.warn("Failed to read temperature value", e);
+      }
+    }
     
-    // Read turbidity (quality) value
-    const qualityValue = await bluetoothState.turbidityCharacteristic?.readValue();
-    const quality = qualityValue ? parseFloat(new TextDecoder().decode(qualityValue)) : 75;
+    if (bluetoothState.turbidityCharacteristic) {
+      try {
+        const value = await bluetoothState.turbidityCharacteristic.readValue();
+        quality = parseFloat(new TextDecoder().decode(value)) || quality;
+      } catch (e) {
+        console.warn("Failed to read quality value", e);
+      }
+    }
     
     return {
-      ph,
+      ph: phValue,
       temperature,
       quality,
       timestamp: Date.now(),
     };
   } catch (error) {
     console.error("Error reading sensor data:", error);
-    toast.error("Failed to read sensor data");
-    
-    // Fallback to simulated data if reading fails
-    const simulatedData = simulateSensorReading();
-    return simulatedData;
+    toast.error("Failed to read sensor data", {
+      description: "Check if device is still connected and try again."
+    });
+    return null;
   }
 };

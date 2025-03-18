@@ -15,12 +15,14 @@ interface BluetoothRemoteGATTServer {
   connect(): Promise<BluetoothRemoteGATTServer>;
   disconnect(): void;
   getPrimaryService(service: BluetoothServiceUUID): Promise<BluetoothRemoteGATTService>;
+  getPrimaryServices(service?: BluetoothServiceUUID): Promise<BluetoothRemoteGATTService[]>;
   readonly device: BluetoothDevice;
   readonly connected: boolean;
 }
 
 interface BluetoothRemoteGATTService {
   getCharacteristic(characteristic: BluetoothCharacteristicUUID): Promise<BluetoothRemoteGATTCharacteristic>;
+  getCharacteristics(characteristic?: BluetoothCharacteristicUUID): Promise<BluetoothRemoteGATTCharacteristic[]>;
   readonly device: BluetoothDevice;
   readonly uuid: string;
   readonly isPrimary: boolean;
@@ -31,6 +33,9 @@ interface BluetoothRemoteGATTCharacteristic {
   writeValue(value: BufferSource): Promise<void>;
   startNotifications(): Promise<BluetoothRemoteGATTCharacteristic>;
   stopNotifications(): Promise<BluetoothRemoteGATTCharacteristic>;
+  addEventListener(type: string, listener: EventListener): void;
+  removeEventListener(type: string, listener: EventListener): void;
+  dispatchEvent(event: Event): boolean;
   readonly service: BluetoothRemoteGATTService;
   readonly uuid: string;
   readonly properties: BluetoothCharacteristicProperties;
@@ -53,6 +58,13 @@ interface Bluetooth {
   requestDevice(options?: RequestDeviceOptions): Promise<BluetoothDevice>;
   getAvailability(): Promise<boolean>;
   getDevices(): Promise<BluetoothDevice[]>;
+  requestLEScan(options?: BluetoothLEScanOptions): Promise<void>;
+}
+
+interface BluetoothLEScanOptions {
+  acceptAllAdvertisements?: boolean;
+  filters?: BluetoothLEScanFilter[];
+  keepRepeatedDevices?: boolean;
 }
 
 interface RequestDeviceOptions {

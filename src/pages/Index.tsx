@@ -25,6 +25,7 @@ const Index = () => {
   const [historicalData, setHistoricalData] = useState<SensorData[]>([]);
   const [apiKey, setApiKey] = useState<string>(getGeminiApiKey());
   const [recommendation, setRecommendation] = useState<string>("");
+  const [lastUpdateSource, setLastUpdateSource] = useState<"arduino" | "simulated">("simulated");
   
   useEffect(() => {
     updateSensorData();
@@ -52,9 +53,14 @@ const Index = () => {
       const deviceData = await readSensorData();
       if (deviceData) {
         setSensorData(deviceData);
+        setLastUpdateSource("arduino");
         toast.success("Sensor data updated from Arduino device", { 
           description: `Timestamp: ${new Date(deviceData.timestamp).toLocaleTimeString()}` 
         });
+        
+        // Here we would add code to send the data to Supabase
+        // once the Supabase integration is set up
+        
         return;
       }
     }
@@ -62,7 +68,8 @@ const Index = () => {
     // Fall back to simulated data if no Bluetooth connection
     const newData = simulateSensorReading();
     setSensorData(newData);
-    toast.success("Sensor data updated (simulated)", { 
+    setLastUpdateSource("simulated");
+    toast.info("Sensor data updated (simulated)", { 
       description: `Timestamp: ${new Date(newData.timestamp).toLocaleTimeString()}` 
     });
   };
@@ -85,6 +92,7 @@ const Index = () => {
               qualityValue={sensorData.quality}
               recommendation={recommendation}
               onUpdateReadings={updateSensorData}
+              dataSource={lastUpdateSource === "arduino" ? "Arduino device" : "Simulation"}
             />
             
             <HistoricalChart historicalData={historicalData} />

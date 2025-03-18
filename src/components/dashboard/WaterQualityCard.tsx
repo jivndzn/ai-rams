@@ -1,46 +1,65 @@
 
-import { Activity, RefreshCw } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import QualityGauge from "@/components/QualityGauge";
+import { Droplets, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import QualityGauge from "@/components/QualityGauge";
+import { getQualityDescription } from "@/lib/sensors";
 
 interface WaterQualityCardProps {
   qualityValue: number;
   recommendation: string;
   onUpdateReadings: () => void;
+  dataSource?: string;
 }
 
 const WaterQualityCard = ({ 
   qualityValue, 
   recommendation, 
-  onUpdateReadings 
+  onUpdateReadings,
+  dataSource = "Simulation"
 }: WaterQualityCardProps) => {
+  const qualityDescription = getQualityDescription(qualityValue);
+  
   return (
     <Card>
       <CardHeader className="pb-2">
-        <CardTitle className="flex items-center text-lg">
-          <Activity className="mr-2 h-5 w-5 text-teal-500" />
-          Rainwater Quality Assessment
+        <CardTitle className="flex items-center justify-between text-lg">
+          <div className="flex items-center">
+            <Droplets className="mr-2 h-5 w-5 text-blue-500" />
+            Rainwater Quality Assessment
+          </div>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="h-8 text-xs"
+            onClick={onUpdateReadings}
+          >
+            <RefreshCw className="mr-1 h-3 w-3" />
+            Update
+          </Button>
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        <QualityGauge value={qualityValue} />
-        <div className="mt-4 p-4 bg-muted rounded-lg">
-          <h3 className="font-semibold mb-1">AI-Recommended Application:</h3>
-          <p className="text-lg">{recommendation}</p>
-          <p className="text-xs mt-2 text-muted-foreground">
-            Based on water quality parameters and machine learning analysis
-          </p>
+      <CardContent className="pb-2">
+        <div className="flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0">
+          <QualityGauge value={qualityValue} />
+          
+          <div className="flex flex-col space-y-1 md:ml-4">
+            <h3 className="text-lg font-semibold">{qualityDescription} Quality</h3>
+            <p className="text-sm text-muted-foreground">
+              Data source: {dataSource}
+            </p>
+            <div className="mt-2 p-2 bg-muted rounded-md">
+              <h4 className="text-sm font-medium">Recommended Use:</h4>
+              <p className="text-sm">{recommendation}</p>
+            </div>
+          </div>
         </div>
-        <Button 
-          variant="outline" 
-          className="mt-4 w-full" 
-          onClick={onUpdateReadings}
-        >
-          <RefreshCw className="mr-2 h-4 w-4" />
-          Simulate New Sensor Readings
-        </Button>
       </CardContent>
+      <CardFooter className="pt-2">
+        <p className="text-xs text-muted-foreground">
+          Quality assessment is based on turbidity, pH, and temperature measurements.
+        </p>
+      </CardFooter>
     </Card>
   );
 };
