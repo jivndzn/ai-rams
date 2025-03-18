@@ -4,6 +4,7 @@ import { SensorData, getWaterUseRecommendation, simulateSensorReading } from "@/
 import { toast } from "sonner";
 import { getGeminiApiKey } from "@/lib/env";
 import { readSensorData, isConnected } from "@/lib/bluetooth";
+import { saveSensorReading, getLatestSensorReadings } from "@/lib/supabase";
 
 // Components
 import DashboardHeader from "@/components/dashboard/Header";
@@ -26,9 +27,11 @@ const Index = () => {
   const [apiKey, setApiKey] = useState<string>(getGeminiApiKey());
   const [recommendation, setRecommendation] = useState<string>("");
   const [lastUpdateSource, setLastUpdateSource] = useState<"arduino" | "simulated">("simulated");
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   
   useEffect(() => {
     updateSensorData();
+    loadHistoricalData();
     
     const interval = setInterval(() => {
       updateSensorData();
@@ -47,6 +50,37 @@ const Index = () => {
     });
   }, [sensorData]);
   
+  const loadHistoricalData = async () => {
+    try {
+      setIsLoading(true);
+      const readings = await getLatestSensorReadings(24);
+      
+      if (readings.length > 0) {
+        // Convert Supabase data to SensorData format
+        const historicalReadings: SensorData[] = readings.map(reading => ({
+          ph: reading.ph,
+          temperature: reading.temperature,
+          quality: reading.quality,
+          timestamp: reading.created_at ? new Date(reading.created_at).getTime() : Date.now(),
+        }));
+        
+        setHistoricalData(historicalReadings);
+        toast.success("Loaded historical sensor data", {
+          description: `Loaded ${readings.length} readings from database`
+        });
+      } else {
+        toast.info("No historical data found", {
+          description: "Connect your Arduino to start collecting data"
+        });
+      }
+    } catch (error) {
+      console.error("Failed to load historical data:", error);
+      toast.error("Failed to load historical data");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
   const updateSensorData = async () => {
     // Try to read from Bluetooth device if connected
     if (isConnected()) {
@@ -58,8 +92,11 @@ const Index = () => {
           description: `Timestamp: ${new Date(deviceData.timestamp).toLocaleTimeString()}` 
         });
         
-        // Here we would add code to send the data to Supabase
-        // once the Supabase integration is set up
+        // Save the Arduino data to Supabase
+        const saved = await saveSensorReading(deviceData, "arduino");
+        if (saved) {
+          toast.success("Sensor data saved to database");
+        }
         
         return;
       }
@@ -93,9 +130,13 @@ const Index = () => {
               recommendation={recommendation}
               onUpdateReadings={updateSensorData}
               dataSource={lastUpdateSource === "arduino" ? "Arduino device" : "Simulation"}
+              onRefreshHistory={loadHistoricalData}
             />
             
-            <HistoricalChart historicalData={historicalData} />
+            <HistoricalChart 
+              historicalData={historicalData}
+              isLoading={isLoading} 
+            />
           </div>
           
           <div className="lg:col-span-1">
