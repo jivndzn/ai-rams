@@ -1,4 +1,3 @@
-
 import { toast } from "sonner";
 import { SensorData, simulateSensorReading } from "./sensors";
 
@@ -6,7 +5,7 @@ import { SensorData, simulateSensorReading } from "./sensors";
 // Standard UUIDs for Arduino and environmental sensing
 const ENVIRONMENTAL_SENSING_SERVICE = "0000181a-0000-1000-8000-00805f9b34fb";
 const ARDUINO_SERVICE = "19b10000-e8f2-537e-4f6c-d104768a1214"; // Common Arduino BLE service
-const GENERIC_SERVICE = "1800"; // Generic Access service for fallback
+const GENERIC_SERVICE = "00001800-0000-1000-8000-00805f9b34fb"; // Generic Access service - full UUID format
 
 // Characteristic UUIDs
 const PH_CHARACTERISTIC_UUID = "00002a6e-0000-1000-8000-00805f9b34fb"; // pH level
@@ -95,7 +94,6 @@ export const connectToDevice = async (options: ConnectionOptions = {}): Promise<
     
     // Set default request options if not provided
     const requestOptions: RequestDeviceOptions = {
-      // If no filters provided, use our Arduino-specific filters
       filters: options.filters || [
         { services: [ENVIRONMENTAL_SENSING_SERVICE] },
         { services: [ARDUINO_SERVICE] },
