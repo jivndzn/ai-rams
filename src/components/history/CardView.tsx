@@ -14,10 +14,12 @@ interface CardViewProps {
 }
 
 const CardView = ({ readings, isLoading, currentPage, setCurrentPage, itemsPerPage }: CardViewProps) => {
-  const totalPages = Math.ceil(readings.length / itemsPerPage);
+  // Modified to use 12 items per page for the card view specifically
+  const cardsPerPage = 12;
+  const totalPages = Math.ceil(readings.length / cardsPerPage);
   const currentReadings = readings.slice(
-    (currentPage - 1) * itemsPerPage, 
-    currentPage * itemsPerPage
+    (currentPage - 1) * cardsPerPage, 
+    currentPage * cardsPerPage
   );
   
   const formatDate = (dateString: string | undefined) => {
@@ -34,7 +36,7 @@ const CardView = ({ readings, isLoading, currentPage, setCurrentPage, itemsPerPa
     <>
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {Array(6).fill(0).map((_, i) => (
+          {Array(12).fill(0).map((_, i) => (
             <Skeleton key={i} className="h-48 w-full rounded-xl" />
           ))}
         </div>
@@ -101,7 +103,7 @@ const CardView = ({ readings, isLoading, currentPage, setCurrentPage, itemsPerPa
             )}
           </div>
           
-          {readings.length > itemsPerPage && (
+          {readings.length > cardsPerPage && (
             <HistoryPagination
               currentPage={currentPage}
               totalPages={totalPages}
