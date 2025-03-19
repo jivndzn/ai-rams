@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from "react";
 import { GeminiMessage, chatWithGemini, getWaterRecommendation } from "@/lib/gemini";
 import { SensorData } from "@/lib/sensors";
@@ -37,6 +38,24 @@ export const useChatWithGemini = ({ sensorData, apiKey }: UseChatWithGeminiProps
       }
     };
   }, [apiKey, hasAutoAnalyzed]);
+  
+  // Validate if input is water-related
+  const isWaterRelatedQuery = (query: string): boolean => {
+    const waterKeywords = [
+      'water', 'rainwater', 'rain', 'ph', 'acid', 'alkaline', 'quality',
+      'treatment', 'filter', 'purif', 'clean', 'contamina', 'pollut',
+      'drinking', 'irrigation', 'garden', 'plant', 'household', 'temperat',
+      'sensor', 'reading', 'measure', 'system', 'collect', 'tank', 'barrel',
+      'sustain', 'conserv', 'recycl', 'reuse', 'harvest', 'storage', 'runoff',
+      'potable', 'non-potable', 'bacteria', 'pathogen', 'safe', 'health',
+      'minerals', 'sediment', 'turbid', 'clarity', 'conductivity'
+    ];
+    
+    const queryLower = query.toLowerCase();
+    
+    // Check if any water-related keyword is in the query
+    return waterKeywords.some(keyword => queryLower.includes(keyword));
+  };
 
   const handleAutoAnalysis = async () => {
     if (!apiKey || !validateApiKeyFormat(apiKey)) {
@@ -142,7 +161,20 @@ export const useChatWithGemini = ({ sensorData, apiKey }: UseChatWithGeminiProps
       // Copy current messages and add the new user message
       const updatedMessages = [...messages, userMessage];
       
-      // Get response from Gemini
+      // Check if input is likely to be off-topic
+      if (!isWaterRelatedQuery(input)) {
+        // Add the off-topic response directly without calling API
+        const offTopicMessage: GeminiMessage = {
+          role: "model",
+          parts: [{ text: "I'm your water quality assistant. I can only provide information and recommendations about rainwater quality, treatment methods, and sustainable usage. Please ask me questions related to your water data or water management techniques." }],
+        };
+        
+        setMessages((prev) => [...prev, offTopicMessage]);
+        setIsLoading(false);
+        return;
+      }
+      
+      // Get response from Gemini for water-related queries
       const response = await chatWithGemini(
         apiKey,
         updatedMessages,

@@ -49,10 +49,22 @@ const ChatBox = ({ sensorData, apiKey, setApiKey }: ChatBoxProps) => {
         {messages.length === 0 ? (
           <div className="text-center p-4">
             <p className="text-muted-foreground mb-2">Click the button below to generate a water analysis</p>
-            <AnalysisButton 
-              handleAutoAnalysis={handleAutoAnalysis}
-              isLoading={isLoading}
-            />
+            <div className="mb-4">
+              <AnalysisButton 
+                handleAutoAnalysis={handleAutoAnalysis}
+                isLoading={isLoading}
+              />
+            </div>
+            <div className="mt-4 text-sm text-muted-foreground max-w-md mx-auto">
+              <p className="mb-2 font-medium">This AI assistant can help you with:</p>
+              <ul className="list-disc list-inside text-left">
+                <li>Analyzing your water quality data</li>
+                <li>Providing treatment recommendations</li>
+                <li>Sustainable rainwater usage advice</li>
+                <li>Water conservation strategies</li>
+              </ul>
+              <p className="mt-2 italic">Note: The assistant only responds to questions related to water quality and management.</p>
+            </div>
           </div>
         ) : (
           <MessageList messages={messages} isLoading={isLoading} />
