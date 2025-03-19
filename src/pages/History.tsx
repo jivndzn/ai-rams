@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { getLatestSensorReadings } from "@/lib/supabase";
@@ -35,7 +34,6 @@ const History = () => {
   const loadHistoricalData = async () => {
     try {
       setIsLoading(true);
-      // Fetch a larger number of records for the history page
       const data = await getLatestSensorReadings(100);
       setReadings(data);
       toast.success("Historical data loaded", {
@@ -188,7 +186,7 @@ const History = () => {
                           <PaginationItem>
                             <PaginationPrevious 
                               onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                              disabled={currentPage === 1}
+                              isDisabled={currentPage === 1}
                             />
                           </PaginationItem>
                           
@@ -209,7 +207,7 @@ const History = () => {
                           <PaginationItem>
                             <PaginationNext 
                               onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                              disabled={currentPage === totalPages}
+                              isDisabled={currentPage === totalPages}
                             />
                           </PaginationItem>
                         </PaginationContent>
@@ -290,7 +288,7 @@ const History = () => {
                       <PaginationItem>
                         <PaginationPrevious 
                           onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                          disabled={currentPage === 1}
+                          isDisabled={currentPage === 1}
                         />
                       </PaginationItem>
                       
@@ -311,7 +309,7 @@ const History = () => {
                       <PaginationItem>
                         <PaginationNext 
                           onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                          disabled={currentPage === totalPages}
+                          isDisabled={currentPage === totalPages}
                         />
                       </PaginationItem>
                     </PaginationContent>
