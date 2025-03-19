@@ -16,9 +16,9 @@ const ChatMessage = ({ message, className }: ChatMessageProps) => {
     
     return text
       // Remove excessive # for headings and replace with styled headings
-      .replace(/#{3,6}\s+(.+)$/gm, '$1')
-      .replace(/##\s+(.+)$/gm, '$1')
-      .replace(/#\s+(.+)$/gm, '$1')
+      .replace(/#{3,6}\s+(.+)$/gm, '<strong>$1</strong>')
+      .replace(/##\s+(.+)$/gm, '<strong>$1</strong>')
+      .replace(/#\s+(.+)$/gm, '<strong>$1</strong>')
       // Remove excessive asterisks
       .replace(/\*{3,}(.+?)\*{3,}/g, '<strong>$1</strong>')
       .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')

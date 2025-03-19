@@ -39,8 +39,16 @@ export const useChatWithGemini = ({ sensorData, apiKey }: UseChatWithGeminiProps
     };
   }, [apiKey, hasAutoAnalyzed]);
   
-  // Validate if input is water-related
-  const isWaterRelatedQuery = (query: string): boolean => {
+  // Validate if input is water-related or basic conversation
+  const isAllowedQuery = (query: string): boolean => {
+    // Basic conversational patterns to allow
+    const basicConversation = [
+      'hello', 'hi', 'hey', 'greetings', 'good morning', 'good afternoon', 'good evening',
+      'how are you', 'how\'s it going', 'what\'s up', 'nice to meet you', 'thanks', 'thank you',
+      'welcome', 'please', 'okay', 'help', 'bye', 'goodbye', 'see you'
+    ];
+    
+    // Water-related keywords
     const waterKeywords = [
       'water', 'rainwater', 'rain', 'ph', 'acid', 'alkaline', 'quality',
       'treatment', 'filter', 'purif', 'clean', 'contamina', 'pollut',
@@ -53,8 +61,17 @@ export const useChatWithGemini = ({ sensorData, apiKey }: UseChatWithGeminiProps
     
     const queryLower = query.toLowerCase();
     
-    // Check if any water-related keyword is in the query
-    return waterKeywords.some(keyword => queryLower.includes(keyword));
+    // Check for basic conversational patterns
+    const isBasicConversation = basicConversation.some(phrase => 
+      queryLower.includes(phrase) || queryLower === phrase
+    );
+    
+    // Check for water-related keywords
+    const isWaterRelated = waterKeywords.some(keyword => 
+      queryLower.includes(keyword)
+    );
+    
+    return isBasicConversation || isWaterRelated;
   };
 
   const handleAutoAnalysis = async () => {
@@ -161,12 +178,12 @@ export const useChatWithGemini = ({ sensorData, apiKey }: UseChatWithGeminiProps
       // Copy current messages and add the new user message
       const updatedMessages = [...messages, userMessage];
       
-      // Check if input is likely to be off-topic
-      if (!isWaterRelatedQuery(input)) {
+      // Check if input is likely to be off-topic (not water-related or basic conversation)
+      if (!isAllowedQuery(input)) {
         // Add the off-topic response directly without calling API
         const offTopicMessage: GeminiMessage = {
           role: "model",
-          parts: [{ text: "I'm your water quality assistant. I can only provide information and recommendations about rainwater quality, treatment methods, and sustainable usage. Please ask me questions related to your water data or water management techniques." }],
+          parts: [{ text: "I'm your friendly water quality assistant. I'd be happy to help with questions about rainwater quality, treatment methods, or sustainable usage. What would you like to know about your water data?" }],
         };
         
         setMessages((prev) => [...prev, offTopicMessage]);
@@ -174,7 +191,7 @@ export const useChatWithGemini = ({ sensorData, apiKey }: UseChatWithGeminiProps
         return;
       }
       
-      // Get response from Gemini for water-related queries
+      // Get response from Gemini for allowed queries
       const response = await chatWithGemini(
         apiKey,
         updatedMessages,
