@@ -5,6 +5,7 @@ export interface SensorData {
   temperature: number;
   quality: number;
   timestamp: number;
+  data_source?: string;
 }
 
 // Function to determine water use recommendation based on pH

@@ -13,7 +13,7 @@ export type SensorData = {
 export type SensorReading = {
   id?: number;
   created_at?: string;
-  pH: number;  // Match the case with your Supabase column name
+  ph: number;  // Match the case with your Supabase column name
   temperature: number;
   quality: number;
   data_source: string;
@@ -117,7 +117,7 @@ export async function getAverageSensorReadings(
     }
     
     const avgTemp = readings.reduce((sum, reading) => sum + reading.temperature, 0) / readings.length;
-    const avgPh = readings.reduce((sum, reading) => sum + reading.pH, 0) / readings.length;
+    const avgPh = readings.reduce((sum, reading) => sum + reading.ph, 0) / readings.length;
     const avgQuality = readings.reduce((sum, reading) => sum + reading.quality, 0) / readings.length;
     
     return {

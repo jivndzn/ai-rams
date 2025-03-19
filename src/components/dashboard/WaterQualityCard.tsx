@@ -11,6 +11,7 @@ interface WaterQualityCardProps {
   onUpdateReadings: () => void;
   dataSource?: string;
   onRefreshHistory?: () => void;
+  lastUpdated: string;
 }
 
 const WaterQualityCard = ({ 

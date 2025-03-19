@@ -66,7 +66,7 @@ const Index = () => {
       if (readings.length > 0) {
         // Convert Supabase data to SensorData format
         const historicalReadings: SensorData[] = readings.map(reading => ({
-          ph: reading.pH, // Note the capitalization here - matches Supabase column
+          ph: reading.ph, // Note the capitalization here - matches Supabase column
           temperature: reading.temperature,
           quality: reading.quality,
           timestamp: reading.created_at ? new Date(reading.created_at).getTime() : Date.now(),
