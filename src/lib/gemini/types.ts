@@ -14,3 +14,8 @@ export interface GeminiResponse {
     finishReason: string;
   }[];
 }
+
+export interface RetryState {
+  attempts: number;
+  timeout: NodeJS.Timeout | null;
+}
