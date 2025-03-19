@@ -3,15 +3,18 @@ import { cn } from "@/lib/utils";
 import { getQualityColor, getQualityDescription } from "@/lib/sensors";
 
 interface QualityGaugeProps {
-  value: number;
+  value: number | undefined;
   className?: string;
 }
 
 const QualityGauge = ({ value, className }: QualityGaugeProps) => {
+  // Handle undefined or null values with a default
+  const safeValue = typeof value === 'number' ? value : 75;
+  
   // Calculate the position (0-100 scale)
-  const position = Math.min(Math.max(value, 0), 100);
-  const qualityColor = getQualityColor(value);
-  const description = getQualityDescription(value);
+  const position = Math.min(Math.max(safeValue, 0), 100);
+  const qualityColor = getQualityColor(safeValue);
+  const description = getQualityDescription(safeValue);
   
   return (
     <div className={cn("water-quality-gauge relative w-full h-24 rounded-full bg-gray-200", className)}>
@@ -28,7 +31,7 @@ const QualityGauge = ({ value, className }: QualityGaugeProps) => {
       
       {/* Value indicator */}
       <div className="absolute inset-0 flex items-center justify-center text-white text-xl font-semibold z-10">
-        {value.toFixed(0)}% - {description}
+        {safeValue.toFixed(0)}% - {description}
       </div>
     </div>
   );

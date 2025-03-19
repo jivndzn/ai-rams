@@ -2,19 +2,22 @@
 import { cn } from "@/lib/utils";
 
 interface TemperatureGaugeProps {
-  value: number;
+  value: number | undefined;
   className?: string;
 }
 
 const TemperatureGauge = ({ value, className }: TemperatureGaugeProps) => {
+  // Handle undefined or null values with a default
+  const safeValue = typeof value === 'number' ? value : 22.0;
+  
   // Calculate the temperature visualization (assuming range of 0-40°C)
-  const position = Math.min(Math.max(value, 0), 40) / 40 * 100;
+  const position = Math.min(Math.max(safeValue, 0), 40) / 40 * 100;
   
   // Determine color based on temperature
   let tempColor = "bg-blue-500";
-  if (value > 30) {
+  if (safeValue > 30) {
     tempColor = "bg-red-500";
-  } else if (value > 20) {
+  } else if (safeValue > 20) {
     tempColor = "bg-orange-400";
   }
   
@@ -38,7 +41,7 @@ const TemperatureGauge = ({ value, className }: TemperatureGaugeProps) => {
       >
         <div className={cn("h-12 w-3 rounded-full", tempColor)}>
           <span className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 font-medium">
-            {value.toFixed(1)}°C
+            {safeValue.toFixed(1)}°C
           </span>
         </div>
       </div>

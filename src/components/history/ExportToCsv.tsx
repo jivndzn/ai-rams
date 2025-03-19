@@ -10,7 +10,7 @@ interface ExportToCsvProps {
 
 const ExportToCsv = ({ readings }: ExportToCsvProps) => {
   const exportToCsv = () => {
-    if (!readings.length) {
+    if (!readings || !readings.length) {
       toast.error("No data to export");
       return;
     }
@@ -41,7 +41,7 @@ const ExportToCsv = ({ readings }: ExportToCsvProps) => {
   };
 
   return (
-    <Button variant="outline" onClick={exportToCsv}>
+    <Button variant="outline" onClick={exportToCsv} disabled={!readings || readings.length === 0}>
       <Download className="h-4 w-4 mr-2" />
       Export CSV
     </Button>
