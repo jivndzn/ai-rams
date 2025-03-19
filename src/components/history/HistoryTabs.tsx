@@ -21,7 +21,7 @@ const HistoryTabs = ({
 }: HistoryTabsProps) => {
   return (
     <Tabs defaultValue="table" className="w-full mb-6">
-      <TabsList className="w-full sm:w-auto">
+      <TabsList className="w-full sm:w-auto mb-2 sm:mb-0">
         <TabsTrigger value="table" className="flex-1 sm:flex-initial">Table View</TabsTrigger>
         <TabsTrigger value="cards" className="flex-1 sm:flex-initial">Card View</TabsTrigger>
       </TabsList>
