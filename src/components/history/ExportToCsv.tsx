@@ -19,14 +19,19 @@ const ExportToCsv = ({ readings }: ExportToCsvProps) => {
       const headers = ["ID", "Timestamp", "pH", "Temperature", "Quality", "Data Source"];
       const csvContent = [
         headers.join(","),
-        ...readings.map(reading => [
-          reading.id || "N/A",
-          reading.created_at || "N/A",
-          reading.ph !== undefined ? reading.ph : "N/A",
-          reading.temperature !== undefined ? reading.temperature : "N/A",
-          reading.quality !== undefined ? reading.quality : "N/A",
-          reading.data_source || "N/A"
-        ].join(","))
+        ...readings.map(reading => {
+          // Handle both ph and pH field names
+          const phValue = reading.ph !== undefined ? reading.ph : (reading.pH as any);
+          
+          return [
+            reading.id || "N/A",
+            reading.created_at || "N/A",
+            phValue !== undefined ? phValue : "N/A",
+            reading.temperature !== undefined ? reading.temperature : "N/A",
+            reading.quality !== undefined ? reading.quality : "N/A",
+            reading.data_source || "N/A"
+          ].join(",");
+        })
       ].join("\n");
       
       const blob = new Blob([csvContent], { type: 'text/csv' });

@@ -13,7 +13,8 @@ export type SensorData = {
 export type SensorReading = {
   id?: number;
   created_at?: string;
-  ph: number;  // Match the case with your Supabase column name
+  ph?: number;    // For lowercase column name
+  pH?: number;    // For uppercase column name (from Python script)
   temperature: number;
   quality: number;
   data_source: string;
@@ -42,7 +43,7 @@ export async function saveSensorReading(
     const { error } = await supabase
       .from('sensor_readings')
       .insert({
-        ph: data.ph,  // Match the case with your Supabase column name
+        ph: data.ph,  // This will use lowercase 'ph'
         temperature: data.temperature,
         quality: data.quality,
         data_source: source
@@ -77,6 +78,8 @@ export async function getLatestSensorReadings(
   limit: number = 24
 ): Promise<SensorReading[]> {
   try {
+    console.log("Fetching sensor readings with limit:", limit);
+    
     const { data, error } = await supabase
       .from('sensor_readings')
       .select('*')
@@ -91,7 +94,18 @@ export async function getLatestSensorReadings(
       return [];
     }
 
-    return data || [];
+    console.log("Received data from Supabase:", data);
+    
+    // Process data to ensure ph values are accessible
+    const processedData = data?.map(reading => {
+      // Handle both lowercase 'ph' and uppercase 'pH' cases
+      if (reading.pH !== undefined && reading.ph === undefined) {
+        return { ...reading, ph: reading.pH };
+      }
+      return reading;
+    }) || [];
+
+    return processedData;
   } catch (err) {
     console.error("Exception fetching sensor data from Supabase:", err);
     toast.error("Failed to fetch sensor data", {
@@ -117,7 +131,13 @@ export async function getAverageSensorReadings(
     }
     
     const avgTemp = readings.reduce((sum, reading) => sum + reading.temperature, 0) / readings.length;
-    const avgPh = readings.reduce((sum, reading) => sum + reading.ph, 0) / readings.length;
+    
+    // Handle both ph and pH
+    const avgPh = readings.reduce((sum, reading) => {
+      const phValue = reading.ph !== undefined ? reading.ph : (reading.pH !== undefined ? reading.pH : 0);
+      return sum + phValue;
+    }, 0) / readings.length;
+    
     const avgQuality = readings.reduce((sum, reading) => sum + reading.quality, 0) / readings.length;
     
     return {

@@ -25,9 +25,15 @@ export function useSensorReadings(limit: number = 100) {
           description: "Connect your Arduino to start collecting data"
         });
       } else {
-        setReadings(data);
+        // Process the data to handle potential column name differences
+        const processedData = data.map(reading => ({
+          ...reading,
+          // Ensure we handle both "ph" and "pH" cases from the database
+          ph: reading.ph !== undefined ? reading.ph : (reading.pH as any)
+        }));
+        setReadings(processedData);
         toast.success("Historical data loaded", {
-          description: `Loaded ${data.length} records from database`
+          description: `Loaded ${processedData.length} records from database`
         });
       }
       
