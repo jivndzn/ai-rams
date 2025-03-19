@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft, RefreshCw, Filter } from "lucide-react";
+import { ArrowLeft, RefreshCw, Filter, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -9,6 +9,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { useIsMobile } from "@/hooks/use-mobile";
 import DashboardHeader from "@/components/dashboard/Header";
 import DashboardFooter from "@/components/dashboard/Footer";
 import TableView from "@/components/history/TableView";
@@ -21,6 +23,7 @@ const History = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   
   const { readings, isLoading, loadHistoricalData } = useSensorReadings(100);
   
@@ -82,41 +85,60 @@ const History = () => {
   
   return (
     <div className="min-h-screen w-full bg-background">
-      <div className="max-w-full mx-auto p-4 md:p-6">
+      <div className="max-w-full mx-auto p-3 md:p-6">
         <DashboardHeader />
         
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-          <div className="flex items-center">
-            <Button variant="ghost" onClick={handleNavigateBack} className="mr-2">
-              <ChevronLeft className="h-4 w-4 mr-1" />
-              Back to Dashboard
+        <div className="flex flex-col gap-4 md:gap-6 mb-4 md:mb-6">
+          <div className="flex items-center justify-between">
+            <Button 
+              variant="outline" 
+              onClick={handleNavigateBack} 
+              className="flex items-center gap-1.5 bg-primary/10 hover:bg-primary/20 border-primary/20 hover:border-primary/30 transform hover:scale-105 transition-all duration-200"
+              size={isMobile ? "sm" : "default"}
+            >
+              <ArrowLeft className="h-4 w-4" />
+              <span>Back to Dashboard</span>
             </Button>
-            <h1 className="text-2xl font-bold">Sensor Reading History</h1>
+            
+            <div className="hidden sm:block">
+              <Badge variant="outline" className="text-lg font-semibold bg-background px-4 py-1.5 border-primary/20">
+                Sensor Reading History
+              </Badge>
+            </div>
           </div>
           
-          <div className="flex space-x-2">
-            <Button 
-              variant={showFilters ? "default" : "outline"} 
-              onClick={() => setShowFilters(!showFilters)}
-            >
-              <Filter className="h-4 w-4 mr-2" />
-              {showFilters ? "Hide Filters" : "Show Filters"}
-            </Button>
-            <Button variant="outline" onClick={loadHistoricalData}>
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Refresh
-            </Button>
-            <ExportToCsv readings={filteredReadings} />
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h1 className="text-2xl font-bold sm:hidden">Sensor Reading History</h1>
+            
+            <div className="flex flex-wrap gap-2 ml-auto">
+              <Button 
+                variant={showFilters ? "default" : "outline"} 
+                onClick={() => setShowFilters(!showFilters)}
+                size={isMobile ? "sm" : "default"}
+              >
+                <Filter className="h-4 w-4 mr-2" />
+                {isMobile ? "Filters" : showFilters ? "Hide Filters" : "Show Filters"}
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={loadHistoricalData}
+                size={isMobile ? "sm" : "default"}
+              >
+                <RefreshCw className="h-4 w-4 mr-2" />
+                {isMobile ? "" : "Refresh"}
+              </Button>
+              <ExportToCsv readings={filteredReadings} />
+            </div>
           </div>
         </div>
         
         {showFilters && (
-          <Card className="mb-6">
+          <Card className="mb-6 animate-fade-in">
             <CardHeader className="pb-2">
               <CardTitle className="text-lg">Filter Options</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="dateFrom">Date From</Label>
                   <Input 
@@ -239,9 +261,9 @@ const History = () => {
         </div>
         
         <Tabs defaultValue="table" className="w-full mb-6">
-          <TabsList>
-            <TabsTrigger value="table">Table View</TabsTrigger>
-            <TabsTrigger value="cards">Card View</TabsTrigger>
+          <TabsList className="w-full sm:w-auto">
+            <TabsTrigger value="table" className="flex-1 sm:flex-initial">Table View</TabsTrigger>
+            <TabsTrigger value="cards" className="flex-1 sm:flex-initial">Card View</TabsTrigger>
           </TabsList>
           
           <TabsContent value="table" className="mt-4">
