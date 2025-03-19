@@ -1,9 +1,10 @@
 
-import { Droplets, RefreshCw, Database } from "lucide-react";
+import { Droplets, RefreshCw, Database, Waves } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import QualityGauge from "@/components/QualityGauge";
-import { getQualityDescription } from "@/lib/sensors";
+import { getQualityDescription, getTurbidityDescription, getTurbidityRecommendation } from "@/lib/sensors";
+import { Badge } from "@/components/ui/badge";
 
 interface WaterQualityCardProps {
   qualityValue: number;
@@ -25,6 +26,8 @@ const WaterQualityCard = ({
   avgQuality
 }: WaterQualityCardProps) => {
   const qualityDescription = getQualityDescription(qualityValue);
+  const turbidityDescription = getTurbidityDescription(qualityValue);
+  const turbidityRecommendation = getTurbidityRecommendation(qualityValue);
   
   const handleUpdateClick = () => {
     console.log("Update button clicked");
@@ -75,12 +78,25 @@ const WaterQualityCard = ({
           <QualityGauge value={qualityValue} />
           
           <div className="flex flex-col space-y-1 md:ml-4">
-            <h3 className="text-lg font-semibold">{qualityDescription} Quality</h3>
+            <div className="flex items-center gap-2">
+              <h3 className="text-lg font-semibold">{qualityDescription} Quality</h3>
+              <Badge variant="outline" className="ml-1">
+                <Waves className="mr-1 h-3 w-3" />
+                {turbidityDescription}
+              </Badge>
+            </div>
+            
             <p className="text-sm text-muted-foreground">
               Data source: {dataSource}
             </p>
+            
             <div className="mt-2 p-2 bg-muted rounded-md">
-              <h4 className="text-sm font-medium">Recommended Use:</h4>
+              <h4 className="text-sm font-medium">Turbidity Assessment:</h4>
+              <p className="text-sm">{turbidityRecommendation}</p>
+            </div>
+            
+            <div className="mt-2 p-2 bg-muted rounded-md">
+              <h4 className="text-sm font-medium">pH-Based Recommendation:</h4>
               <p className="text-sm">{recommendation}</p>
             </div>
             

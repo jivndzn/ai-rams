@@ -1,4 +1,3 @@
-
 // Types for our sensor data
 export interface SensorData {
   ph: number;
@@ -32,6 +31,25 @@ export function getQualityDescription(quality: number): string {
   }
 }
 
+// Function to get turbidity description based on quality value
+export function getTurbidityDescription(quality: number): string {
+  if (quality >= 90) {
+    return "Clear";
+  } else if (quality >= 80) {
+    return "Slightly Cloudy";
+  } else if (quality >= 70) {
+    return "Cloudy";
+  } else if (quality >= 60) {
+    return "Very Cloudy";
+  } else if (quality >= 50) {
+    return "Slightly Dirty";
+  } else if (quality >= 40) {
+    return "Dirty";
+  } else {
+    return "Very Dirty";
+  }
+}
+
 // Function to get water quality color
 export function getQualityColor(quality: number): string {
   if (quality >= 80) {
@@ -53,6 +71,25 @@ export function getPhColor(ph: number): string {
     return "bg-yellow-400";
   } else {
     return "bg-red-500";
+  }
+}
+
+// Function to get recommendation based on turbidity
+export function getTurbidityRecommendation(quality: number): string {
+  if (quality >= 90) { // Clear
+    return "Safe for drinking after basic treatment";
+  } else if (quality >= 80) { // Slightly Cloudy
+    return "Safe for bathing and laundry, requires filtration for drinking";
+  } else if (quality >= 70) { // Cloudy
+    return "Suitable for irrigation and non-contact use";
+  } else if (quality >= 60) { // Very Cloudy
+    return "Suitable for watering non-edible plants, not for consumption";
+  } else if (quality >= 50) { // Slightly Dirty
+    return "Requires significant treatment before any use";
+  } else if (quality >= 40) { // Dirty
+    return "Not recommended for household use, limited agricultural applications";
+  } else { // Very Dirty
+    return "Not suitable for any domestic or agricultural use";
   }
 }
 
