@@ -7,6 +7,7 @@ import { getQualityDescription, getTurbidityDescription, getTurbidityRecommendat
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useTheme } from "@/providers/ThemeProvider";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface WaterQualityCardProps {
   qualityValue: number;
@@ -30,6 +31,7 @@ const WaterQualityCard = ({
   const qualityDescription = getQualityDescription(qualityValue);
   const turbidityDescription = getTurbidityDescription(qualityValue);
   const turbidityRecommendation = getTurbidityRecommendation(qualityValue);
+  const isMobile = useIsMobile();
   
   // Determine if water quality is concerning
   const isConcerning = qualityValue > 80;
@@ -53,12 +55,12 @@ const WaterQualityCard = ({
   return (
     <Card className={`overflow-hidden ${isDarkMode ? "border-slate-800 bg-gradient-to-b from-slate-900 to-slate-950" : "border-slate-200 bg-gradient-to-b from-white to-slate-50"} shadow-lg`}>
       <CardHeader className={`pb-2 border-b ${isDarkMode ? "border-slate-800" : "border-slate-200"}`}>
-        <CardTitle className="flex items-center justify-between text-lg">
-          <div className="flex items-center">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0">
+          <CardTitle className="flex items-center text-lg">
             <Droplets className="mr-2 h-5 w-5 text-blue-400" />
-            Rainwater Quality Assessment
-          </div>
-          <div className="flex space-x-2">
+            {isMobile ? "Quality Assessment" : "Rainwater Quality Assessment"}
+          </CardTitle>
+          <div className="flex flex-wrap gap-2">
             {onRefreshHistory && (
               <Button 
                 variant="outline" 
@@ -67,7 +69,7 @@ const WaterQualityCard = ({
                 onClick={handleHistoryClick}
               >
                 <Database className="mr-1 h-3 w-3" />
-                Load History
+                {isMobile ? "" : "Load "}History
               </Button>
             )}
             <Button 
@@ -80,7 +82,7 @@ const WaterQualityCard = ({
               Update
             </Button>
           </div>
-        </CardTitle>
+        </div>
       </CardHeader>
       <CardContent className="pb-2 pt-4">
         <div className="flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0 md:space-x-6">
@@ -89,7 +91,7 @@ const WaterQualityCard = ({
           </div>
           
           <div className="flex flex-col space-y-3 md:w-3/5">
-            <div className="flex items-center gap-2 mb-1">
+            <div className="flex flex-wrap items-center gap-2 mb-1">
               <h3 className={`text-lg font-semibold ${isConcerning ? 'text-red-500' : (isDarkMode ? 'text-blue-300' : 'text-blue-600')}`}>
                 {qualityDescription} Quality
               </h3>
@@ -103,7 +105,7 @@ const WaterQualityCard = ({
               </Badge>
               
               {isConcerning && (
-                <Badge variant="destructive" className="ml-auto">
+                <Badge variant="destructive" className="ml-auto sm:ml-0">
                   <AlertTriangle className="h-3 w-3 mr-1" />
                   Concerning
                 </Badge>
