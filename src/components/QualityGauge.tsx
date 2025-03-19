@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 import { getQualityColor, getQualityDescription, getTurbidityDescription } from "@/lib/sensors";
 import { Info } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useTheme } from "@/providers/ThemeProvider";
 
 interface QualityGaugeProps {
   value: number | undefined;
@@ -22,6 +23,10 @@ const QualityGauge = ({ value, className }: QualityGaugeProps) => {
   const qualityColor = getQualityColor(safeValue);
   const qualityDescription = getQualityDescription(safeValue);
   const turbidityDescription = getTurbidityDescription(safeValue);
+  
+  // Get the current theme
+  const { theme } = useTheme();
+  const isDarkMode = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
   
   return (
     <div className="flex flex-col items-center space-y-2 w-full">

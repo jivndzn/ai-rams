@@ -1,5 +1,6 @@
 
 import { cn } from "@/lib/utils";
+import { useTheme } from "@/providers/ThemeProvider";
 
 interface TemperatureGaugeProps {
   value: number | undefined;
@@ -21,8 +22,15 @@ const TemperatureGauge = ({ value, className }: TemperatureGaugeProps) => {
     tempColor = "bg-orange-400";
   }
   
+  const { theme } = useTheme();
+  const isDarkMode = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  
   return (
-    <div className={cn("relative w-full h-12 rounded-full bg-gray-200 overflow-hidden", className)}>
+    <div className={cn(
+      "relative w-full h-12 rounded-full overflow-hidden", 
+      isDarkMode ? "bg-slate-800/50" : "bg-gray-200",
+      className
+    )}>
       {/* Temperature scale markings */}
       <div className="absolute inset-0 flex justify-between px-2 items-center text-xs text-gray-500">
         <span>0°C</span>
@@ -40,7 +48,7 @@ const TemperatureGauge = ({ value, className }: TemperatureGaugeProps) => {
         }}
       >
         <div className={cn("h-12 w-3 rounded-full", tempColor)}>
-          <span className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 font-medium">
+          <span className={`absolute -bottom-6 left-1/2 transform -translate-x-1/2 font-medium ${isDarkMode ? "text-slate-300" : ""}`}>
             {safeValue.toFixed(1)}°C
           </span>
         </div>

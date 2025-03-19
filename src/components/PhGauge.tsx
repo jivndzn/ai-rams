@@ -1,6 +1,7 @@
 
 import { cn } from "@/lib/utils";
 import { getPhColor } from "@/lib/sensors";
+import { useTheme } from "@/providers/ThemeProvider";
 
 interface PhGaugeProps {
   value: number | undefined;
@@ -17,8 +18,15 @@ const PhGauge = ({ value, className }: PhGaugeProps) => {
   // Get the appropriate color for the pH value
   const phColor = getPhColor(safeValue);
   
+  const { theme } = useTheme();
+  const isDarkMode = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  
   return (
-    <div className={cn("relative w-full h-12 rounded-full bg-gray-200 overflow-hidden", className)}>
+    <div className={cn(
+      "relative w-full h-12 rounded-full overflow-hidden", 
+      isDarkMode ? "bg-slate-800/50" : "bg-gray-200",
+      className
+    )}>
       {/* pH scale markings */}
       <div className="absolute inset-0 flex justify-between px-2 items-center text-xs text-gray-500">
         <span>0</span>
@@ -36,7 +44,7 @@ const PhGauge = ({ value, className }: PhGaugeProps) => {
         }}
       >
         <div className={cn("h-12 w-3 rounded-full", phColor)}>
-          <span className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 font-medium">
+          <span className={`absolute -bottom-6 left-1/2 transform -translate-x-1/2 font-medium ${isDarkMode ? "text-slate-300" : ""}`}>
             {safeValue.toFixed(1)}
           </span>
         </div>
@@ -44,7 +52,7 @@ const PhGauge = ({ value, className }: PhGaugeProps) => {
       
       {/* Neutral marker */}
       <div 
-        className="absolute top-0 bottom-0 w-1 bg-gray-400"
+        className={`absolute top-0 bottom-0 w-1 ${isDarkMode ? "bg-gray-600" : "bg-gray-400"}`}
         style={{ left: "50%", transform: "translateX(-50%)" }}
       />
     </div>

@@ -6,6 +6,7 @@ import QualityGauge from "@/components/QualityGauge";
 import { getQualityDescription, getTurbidityDescription, getTurbidityRecommendation } from "@/lib/sensors";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useTheme } from "@/providers/ThemeProvider";
 
 interface WaterQualityCardProps {
   qualityValue: number;
@@ -44,6 +45,10 @@ const WaterQualityCard = ({
       onRefreshHistory();
     }
   };
+  
+  // Get the current theme
+  const { theme } = useTheme();
+  const isDarkMode = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
   
   return (
     <Card className="overflow-hidden border-slate-800 bg-gradient-to-b from-slate-900 to-slate-950 shadow-lg">
