@@ -1,4 +1,3 @@
-
 // Types for our sensor data
 export interface SensorData {
   ph: number;
@@ -22,14 +21,11 @@ export function getWaterUseRecommendation(ph: number): string {
 // Function to get water quality description based on the Arduino's turbidity scale
 // In Arduino code: 0% = clear water, 100% = dirty water
 export function getQualityDescription(quality: number): string {
-  // Invert the scale to match Arduino's logic (0% = clear, 100% = dirty)
-  const invertedQuality = 100 - quality;
-  
-  if (invertedQuality >= 80) {
+  if (quality >= 90) {
     return "Poor";
-  } else if (invertedQuality >= 60) {
+  } else if (quality >= 70) {
     return "Fair";
-  } else if (invertedQuality >= 40) {
+  } else if (quality >= 40) {
     return "Good";
   } else {
     return "Excellent";
@@ -39,20 +35,17 @@ export function getQualityDescription(quality: number): string {
 // Function to get turbidity description based on Arduino's quality value
 // In Arduino code: 0% = clear water, 100% = dirty water
 export function getTurbidityDescription(quality: number): string {
-  // Invert the scale to match Arduino's logic (0% = clear, 100% = dirty)
-  const invertedQuality = 100 - quality;
-  
-  if (invertedQuality >= 90) {
+  if (quality >= 90) {
     return "Very Dirty";
-  } else if (invertedQuality >= 80) {
+  } else if (quality >= 80) {
     return "Dirty";
-  } else if (invertedQuality >= 70) {
+  } else if (quality >= 70) {
     return "Slightly Dirty";
-  } else if (invertedQuality >= 60) {
+  } else if (quality >= 60) {
     return "Very Cloudy";
-  } else if (invertedQuality >= 50) {
+  } else if (quality >= 50) {
     return "Cloudy";
-  } else if (invertedQuality >= 40) {
+  } else if (quality >= 40) {
     return "Slightly Cloudy";
   } else {
     return "Clear";
@@ -62,17 +55,20 @@ export function getTurbidityDescription(quality: number): string {
 // Function to get water quality color based on Arduino's turbidity scale
 // In Arduino code: 0% = clear water, 100% = dirty water
 export function getQualityColor(quality: number): string {
-  // Invert the scale to match Arduino's logic (0% = clear, 100% = dirty)
-  const invertedQuality = 100 - quality;
-  
-  if (invertedQuality >= 80) {
-    return "bg-red-500";
-  } else if (invertedQuality >= 60) {
-    return "bg-yellow-400";
-  } else if (invertedQuality >= 40) {
-    return "bg-teal-400";
+  if (quality >= 90) {
+    return "bg-gradient-to-r from-red-600 to-red-500";
+  } else if (quality >= 80) {
+    return "bg-gradient-to-r from-red-500 to-orange-500";
+  } else if (quality >= 70) {
+    return "bg-gradient-to-r from-orange-500 to-amber-500";
+  } else if (quality >= 60) {
+    return "bg-gradient-to-r from-amber-500 to-yellow-400";
+  } else if (quality >= 50) {
+    return "bg-gradient-to-r from-yellow-400 to-teal-400";
+  } else if (quality >= 40) {
+    return "bg-gradient-to-r from-teal-400 to-teal-500";
   } else {
-    return "bg-teal-500";
+    return "bg-gradient-to-r from-teal-500 to-cyan-500";
   }
 }
 
