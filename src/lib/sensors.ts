@@ -72,6 +72,7 @@ export function simulateSensorReading(): SensorData {
     temperature,
     quality,
     timestamp: Date.now(),
+    data_source: "simulated"
   };
 }
 

@@ -19,7 +19,8 @@ const WaterQualityCard = ({
   recommendation, 
   onUpdateReadings,
   dataSource = "Simulation",
-  onRefreshHistory
+  onRefreshHistory,
+  lastUpdated
 }: WaterQualityCardProps) => {
   const qualityDescription = getQualityDescription(qualityValue);
   
@@ -68,13 +69,16 @@ const WaterQualityCard = ({
               <h4 className="text-sm font-medium">Recommended Use:</h4>
               <p className="text-sm">{recommendation}</p>
             </div>
+            <p className="text-xs text-muted-foreground mt-2">
+              Last updated: {lastUpdated}
+            </p>
           </div>
         </div>
       </CardContent>
       <CardFooter className="pt-2">
         <p className="text-xs text-muted-foreground">
           Quality assessment is based on turbidity, pH, and temperature measurements.
-          {dataSource === "Arduino device" && " Data is saved to Supabase."}
+          {dataSource === "Arduino via Python" && " Data is saved to Supabase."}
         </p>
       </CardFooter>
     </Card>
