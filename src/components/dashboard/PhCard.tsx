@@ -16,7 +16,7 @@ const PhCard = ({ phValue, avgPh }: PhCardProps) => {
   const isDarkMode = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
   
   return (
-    <Card className={isDarkMode ? "bg-slate-900 border-slate-800 shadow-lg" : ""}>
+    <Card className={isDarkMode ? "bg-slate-900 border-slate-800 shadow-lg" : "bg-white border-slate-200 shadow-md"}>
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center text-lg">
           <Droplet className="mr-2 h-5 w-5 text-blue-400" />
@@ -26,7 +26,7 @@ const PhCard = ({ phValue, avgPh }: PhCardProps) => {
       <CardContent>
         <PhGauge value={phValue} />
         <div className="mt-6 space-y-2">
-          <p className={`text-sm ${isDarkMode ? "text-slate-400" : "text-muted-foreground"}`}>
+          <p className={`text-sm ${isDarkMode ? "text-slate-400" : "text-slate-600"}`}>
             {safeValue < 7 
               ? "Acidic water (pH < 7)" 
               : safeValue > 7 
@@ -35,8 +35,8 @@ const PhCard = ({ phValue, avgPh }: PhCardProps) => {
           </p>
           
           {typeof avgPh === 'number' && (
-            <p className={`text-xs ${isDarkMode ? "text-slate-500 border-slate-800" : "text-muted-foreground border-border"} border-t pt-2 mt-2`}>
-              Average pH (last 10 readings): <span className={`font-medium ${isDarkMode ? "text-slate-300" : ""}`}>{avgPh.toFixed(1)}</span>
+            <p className={`text-xs ${isDarkMode ? "text-slate-500 border-slate-800" : "text-slate-500 border-slate-200"} border-t pt-2 mt-2`}>
+              Average pH (last 10 readings): <span className={`font-medium ${isDarkMode ? "text-slate-300" : "text-slate-800"}`}>{avgPh.toFixed(1)}</span>
             </p>
           )}
         </div>

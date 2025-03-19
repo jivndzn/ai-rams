@@ -51,8 +51,8 @@ const WaterQualityCard = ({
   const isDarkMode = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
   
   return (
-    <Card className="overflow-hidden border-slate-800 bg-gradient-to-b from-slate-900 to-slate-950 shadow-lg">
-      <CardHeader className="pb-2 border-b border-slate-800">
+    <Card className={`overflow-hidden ${isDarkMode ? "border-slate-800 bg-gradient-to-b from-slate-900 to-slate-950" : "border-slate-200 bg-gradient-to-b from-white to-slate-50"} shadow-lg`}>
+      <CardHeader className={`pb-2 border-b ${isDarkMode ? "border-slate-800" : "border-slate-200"}`}>
         <CardTitle className="flex items-center justify-between text-lg">
           <div className="flex items-center">
             <Droplets className="mr-2 h-5 w-5 text-blue-400" />
@@ -63,7 +63,7 @@ const WaterQualityCard = ({
               <Button 
                 variant="outline" 
                 size="sm" 
-                className="h-8 text-xs bg-slate-800 border-slate-700 hover:bg-slate-700 text-slate-200"
+                className={`h-8 text-xs ${isDarkMode ? "bg-slate-800 border-slate-700 hover:bg-slate-700 text-slate-200" : "bg-slate-100 border-slate-200 hover:bg-slate-200 text-slate-800"}`}
                 onClick={handleHistoryClick}
               >
                 <Database className="mr-1 h-3 w-3" />
@@ -73,7 +73,7 @@ const WaterQualityCard = ({
             <Button 
               variant="outline" 
               size="sm" 
-              className="h-8 text-xs bg-slate-800 border-slate-700 hover:bg-slate-700 text-slate-200"
+              className={`h-8 text-xs ${isDarkMode ? "bg-slate-800 border-slate-700 hover:bg-slate-700 text-slate-200" : "bg-slate-100 border-slate-200 hover:bg-slate-200 text-slate-800"}`}
               onClick={handleUpdateClick}
             >
               <RefreshCw className="mr-1 h-3 w-3" />
@@ -90,10 +90,14 @@ const WaterQualityCard = ({
           
           <div className="flex flex-col space-y-3 md:w-3/5">
             <div className="flex items-center gap-2 mb-1">
-              <h3 className={`text-lg font-semibold ${isConcerning ? 'text-red-400' : 'text-blue-300'}`}>
+              <h3 className={`text-lg font-semibold ${isConcerning ? 'text-red-500' : (isDarkMode ? 'text-blue-300' : 'text-blue-600')}`}>
                 {qualityDescription} Quality
               </h3>
-              <Badge variant="outline" className={`ml-1 ${isConcerning ? 'border-red-800 bg-red-950/50' : 'border-blue-800 bg-blue-950/50'}`}>
+              <Badge variant="outline" className={`ml-1 ${
+                isConcerning 
+                  ? (isDarkMode ? 'border-red-800 bg-red-950/50' : 'border-red-300 bg-red-50') 
+                  : (isDarkMode ? 'border-blue-800 bg-blue-950/50' : 'border-blue-300 bg-blue-50')
+              }`}>
                 <Waves className="mr-1 h-3 w-3" />
                 {turbidityDescription}
               </Badge>
@@ -106,34 +110,34 @@ const WaterQualityCard = ({
               )}
             </div>
             
-            <p className="text-sm text-slate-400">
-              Data source: <span className="text-slate-300 font-medium">{dataSource}</span>
+            <p className={`text-sm ${isDarkMode ? "text-slate-400" : "text-slate-600"}`}>
+              Data source: <span className={isDarkMode ? "text-slate-300 font-medium" : "text-slate-800 font-medium"}>{dataSource}</span>
             </p>
             
-            <div className="mt-2 p-3 bg-slate-800/50 backdrop-blur-sm rounded-md border border-slate-700/50 shadow-inner">
-              <h4 className="text-sm font-medium text-slate-300 mb-1">Turbidity Assessment:</h4>
-              <p className="text-sm text-slate-400">{turbidityRecommendation}</p>
+            <div className={`mt-2 p-3 ${isDarkMode ? "bg-slate-800/50 border-slate-700/50" : "bg-slate-100/80 border-slate-200/80"} backdrop-blur-sm rounded-md border shadow-inner`}>
+              <h4 className={`text-sm font-medium ${isDarkMode ? "text-slate-300" : "text-slate-700"} mb-1`}>Turbidity Assessment:</h4>
+              <p className={`text-sm ${isDarkMode ? "text-slate-400" : "text-slate-600"}`}>{turbidityRecommendation}</p>
             </div>
             
-            <div className="p-3 bg-slate-800/50 backdrop-blur-sm rounded-md border border-slate-700/50 shadow-inner">
-              <h4 className="text-sm font-medium text-slate-300 mb-1">pH-Based Recommendation:</h4>
-              <p className="text-sm text-slate-400">{recommendation}</p>
+            <div className={`p-3 ${isDarkMode ? "bg-slate-800/50 border-slate-700/50" : "bg-slate-100/80 border-slate-200/80"} backdrop-blur-sm rounded-md border shadow-inner`}>
+              <h4 className={`text-sm font-medium ${isDarkMode ? "text-slate-300" : "text-slate-700"} mb-1`}>pH-Based Recommendation:</h4>
+              <p className={`text-sm ${isDarkMode ? "text-slate-400" : "text-slate-600"}`}>{recommendation}</p>
             </div>
             
             {avgQuality !== undefined && avgQuality > 0 && (
-              <p className="text-xs text-slate-400 border-t border-slate-800 pt-2">
-                Average quality (last 10 readings): <span className="font-medium text-slate-300">{avgQuality.toFixed(0)}%</span>
-                {" "}<span className="text-xs text-slate-400">({getTurbidityDescription(avgQuality)})</span>
+              <p className={`text-xs ${isDarkMode ? "text-slate-400 border-slate-800" : "text-slate-600 border-slate-200"} border-t pt-2`}>
+                Average quality (last 10 readings): <span className={`font-medium ${isDarkMode ? "text-slate-300" : "text-slate-800"}`}>{avgQuality.toFixed(0)}%</span>
+                {" "}<span className={`text-xs ${isDarkMode ? "text-slate-400" : "text-slate-500"}`}>({getTurbidityDescription(avgQuality)})</span>
               </p>
             )}
             
-            <p className="text-xs text-slate-500">
-              Last updated: <span className="text-slate-400">{lastUpdated}</span>
+            <p className={`text-xs ${isDarkMode ? "text-slate-500" : "text-slate-500"}`}>
+              Last updated: <span className={isDarkMode ? "text-slate-400" : "text-slate-600"}>{lastUpdated}</span>
             </p>
           </div>
         </div>
       </CardContent>
-      <CardFooter className="pt-2 border-t border-slate-800 bg-slate-900/50">
+      <CardFooter className={`pt-2 border-t ${isDarkMode ? "border-slate-800 bg-slate-900/50" : "border-slate-200 bg-slate-50/50"}`}>
         <p className="text-xs text-slate-500">
           Quality assessment is based on turbidity, pH, and temperature measurements.
           {dataSource === "arduino_uno" && " Data is saved to Supabase."}
