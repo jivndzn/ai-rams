@@ -1,3 +1,4 @@
+
 // Types for our sensor data
 export interface SensorData {
   ph: number;
@@ -18,48 +19,60 @@ export function getWaterUseRecommendation(ph: number): string {
   }
 }
 
-// Function to get water quality description
+// Function to get water quality description based on the Arduino's turbidity scale
+// In Arduino code: 0% = clear water, 100% = dirty water
 export function getQualityDescription(quality: number): string {
-  if (quality >= 80) {
-    return "Excellent";
-  } else if (quality >= 60) {
-    return "Good";
-  } else if (quality >= 40) {
-    return "Fair";
-  } else {
+  // Invert the scale to match Arduino's logic (0% = clear, 100% = dirty)
+  const invertedQuality = 100 - quality;
+  
+  if (invertedQuality >= 80) {
     return "Poor";
+  } else if (invertedQuality >= 60) {
+    return "Fair";
+  } else if (invertedQuality >= 40) {
+    return "Good";
+  } else {
+    return "Excellent";
   }
 }
 
-// Function to get turbidity description based on quality value
+// Function to get turbidity description based on Arduino's quality value
+// In Arduino code: 0% = clear water, 100% = dirty water
 export function getTurbidityDescription(quality: number): string {
-  if (quality >= 90) {
-    return "Clear";
-  } else if (quality >= 80) {
-    return "Slightly Cloudy";
-  } else if (quality >= 70) {
-    return "Cloudy";
-  } else if (quality >= 60) {
-    return "Very Cloudy";
-  } else if (quality >= 50) {
-    return "Slightly Dirty";
-  } else if (quality >= 40) {
-    return "Dirty";
-  } else {
+  // Invert the scale to match Arduino's logic (0% = clear, 100% = dirty)
+  const invertedQuality = 100 - quality;
+  
+  if (invertedQuality >= 90) {
     return "Very Dirty";
+  } else if (invertedQuality >= 80) {
+    return "Dirty";
+  } else if (invertedQuality >= 70) {
+    return "Slightly Dirty";
+  } else if (invertedQuality >= 60) {
+    return "Very Cloudy";
+  } else if (invertedQuality >= 50) {
+    return "Cloudy";
+  } else if (invertedQuality >= 40) {
+    return "Slightly Cloudy";
+  } else {
+    return "Clear";
   }
 }
 
-// Function to get water quality color
+// Function to get water quality color based on Arduino's turbidity scale
+// In Arduino code: 0% = clear water, 100% = dirty water
 export function getQualityColor(quality: number): string {
-  if (quality >= 80) {
-    return "bg-teal-500";
-  } else if (quality >= 60) {
-    return "bg-teal-400";
-  } else if (quality >= 40) {
-    return "bg-yellow-400";
-  } else {
+  // Invert the scale to match Arduino's logic (0% = clear, 100% = dirty)
+  const invertedQuality = 100 - quality;
+  
+  if (invertedQuality >= 80) {
     return "bg-red-500";
+  } else if (invertedQuality >= 60) {
+    return "bg-yellow-400";
+  } else if (invertedQuality >= 40) {
+    return "bg-teal-400";
+  } else {
+    return "bg-teal-500";
   }
 }
 
@@ -74,22 +87,26 @@ export function getPhColor(ph: number): string {
   }
 }
 
-// Function to get recommendation based on turbidity
+// Function to get recommendation based on Arduino's turbidity
+// In Arduino code: 0% = clear water, 100% = dirty water
 export function getTurbidityRecommendation(quality: number): string {
-  if (quality >= 90) { // Clear
-    return "Safe for drinking after basic treatment";
-  } else if (quality >= 80) { // Slightly Cloudy
-    return "Safe for bathing and laundry, requires filtration for drinking";
-  } else if (quality >= 70) { // Cloudy
-    return "Suitable for irrigation and non-contact use";
-  } else if (quality >= 60) { // Very Cloudy
-    return "Suitable for watering non-edible plants, not for consumption";
-  } else if (quality >= 50) { // Slightly Dirty
-    return "Requires significant treatment before any use";
-  } else if (quality >= 40) { // Dirty
-    return "Not recommended for household use, limited agricultural applications";
-  } else { // Very Dirty
+  // Invert the scale to match Arduino's logic (0% = clear, 100% = dirty)
+  const invertedQuality = 100 - quality;
+  
+  if (invertedQuality >= 90) { // Very Dirty
     return "Not suitable for any domestic or agricultural use";
+  } else if (invertedQuality >= 80) { // Dirty
+    return "Not recommended for household use, limited agricultural applications";
+  } else if (invertedQuality >= 70) { // Slightly Dirty
+    return "Requires significant treatment before any use";
+  } else if (invertedQuality >= 60) { // Very Cloudy
+    return "Suitable for watering non-edible plants, not for consumption";
+  } else if (invertedQuality >= 50) { // Cloudy
+    return "Suitable for irrigation and non-contact use";
+  } else if (invertedQuality >= 40) { // Slightly Cloudy
+    return "Safe for bathing and laundry, requires filtration for drinking";
+  } else { // Clear
+    return "Safe for drinking after basic treatment";
   }
 }
 
@@ -101,7 +118,7 @@ export function simulateSensorReading(): SensorData {
   // Random temperature between 15°C and 30°C
   const temperature = 15 + Math.random() * 15;
   
-  // Random quality between 30 and 95
+  // Random quality between 30 and 95 - higher values represent dirtier water in Arduino
   const quality = 30 + Math.random() * 65;
   
   return {
@@ -123,7 +140,7 @@ export function getHistoricalData(hours: number = 24): SensorData[] {
     data.push({
       ph: 6.0 + Math.random() * 2.5,
       temperature: 18 + Math.random() * 10,
-      quality: 40 + Math.random() * 50,
+      quality: 40 + Math.random() * 50, // Higher values represent dirtier water in Arduino
       timestamp: now - (hours - i) * hourInMs,
     });
   }

@@ -1,10 +1,11 @@
 
-import { Droplets, RefreshCw, Database, Waves } from "lucide-react";
+import { Droplets, RefreshCw, Database, Waves, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import QualityGauge from "@/components/QualityGauge";
 import { getQualityDescription, getTurbidityDescription, getTurbidityRecommendation } from "@/lib/sensors";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface WaterQualityCardProps {
   qualityValue: number;
@@ -75,7 +76,22 @@ const WaterQualityCard = ({
       </CardHeader>
       <CardContent className="pb-2">
         <div className="flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0">
-          <QualityGauge value={qualityValue} />
+          <div className="w-full md:w-auto">
+            <QualityGauge value={qualityValue} />
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="flex items-center justify-center text-xs text-muted-foreground mt-1 cursor-help">
+                    <Info className="h-3 w-3 mr-1" />
+                    <span>Higher values indicate dirtier water</span>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Arduino sensor: 0% = Clear water, 100% = Dirty water</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
           
           <div className="flex flex-col space-y-1 md:ml-4">
             <div className="flex items-center gap-2">
@@ -103,6 +119,7 @@ const WaterQualityCard = ({
             {avgQuality !== undefined && avgQuality > 0 && (
               <p className="text-xs text-muted-foreground border-t border-border pt-2 mt-2">
                 Average quality (last 10 readings): <span className="font-medium">{avgQuality.toFixed(0)}%</span>
+                {" "}<span className="text-xs">({getTurbidityDescription(avgQuality)})</span>
               </p>
             )}
             
