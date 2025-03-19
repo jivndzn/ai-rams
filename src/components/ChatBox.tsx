@@ -59,11 +59,12 @@ const ChatBox = ({ sensorData, apiKey, setApiKey }: ChatBoxProps) => {
               <p className="mb-2 font-medium">I'm your friendly water assistant and can help with:</p>
               <ul className="list-disc list-inside text-left">
                 <li>Analyzing your water quality data</li>
+                <li>Explaining your sensor readings and trends</li>
+                <li>Comparing current readings to historical data</li>
                 <li>Providing treatment recommendations</li>
-                <li>Sustainable rainwater usage advice</li>
-                <li>Water conservation strategies</li>
+                <li>Suggesting sustainable rainwater usage options</li>
               </ul>
-              <p className="mt-2 italic">Feel free to greet me or ask questions about your water data!</p>
+              <p className="mt-2 italic">Try asking about your pH readings, temperature trends, or water quality metrics!</p>
             </div>
           </div>
         ) : (

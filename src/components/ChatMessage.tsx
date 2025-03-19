@@ -10,7 +10,7 @@ interface ChatMessageProps {
 const ChatMessage = ({ message, className }: ChatMessageProps) => {
   const isUser = message.role === "user";
   
-  // Format the message content to handle markdown
+  // Format the message content to handle markdown and data formatting
   const formatMessageContent = (text: string): string => {
     if (isUser) return text;
     
@@ -23,6 +23,13 @@ const ChatMessage = ({ message, className }: ChatMessageProps) => {
       .replace(/\*{3,}(.+?)\*{3,}/g, '<strong>$1</strong>')
       .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
       .replace(/\*(.+?)\*/g, '<em>$1</em>')
+      // Highlight data points and measurements
+      .replace(/(\d+\.?\d*)\s*(pH|ph)/g, '<span class="text-amber-600 font-semibold">$1 $2</span>')
+      .replace(/(\d+\.?\d*)\s*°C/g, '<span class="text-blue-600 font-semibold">$1°C</span>')
+      .replace(/(\d+\.?\d*)\s*%/g, '<span class="text-green-600 font-semibold">$1%</span>')
+      .replace(/(\d+)\/100/g, '<span class="text-purple-600 font-semibold">$1/100</span>')
+      // Create simple tables for data
+      .replace(/\|\s*([^|]+)\s*\|\s*([^|]+)\s*\|/g, '<div class="grid grid-cols-2 gap-2 my-1"><div class="font-medium">$1</div><div>$2</div></div>')
       // Preserve line breaks but strip extra ones
       .replace(/\n{3,}/g, '\n\n');
   };
