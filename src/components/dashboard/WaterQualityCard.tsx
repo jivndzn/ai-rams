@@ -26,6 +26,18 @@ const WaterQualityCard = ({
 }: WaterQualityCardProps) => {
   const qualityDescription = getQualityDescription(qualityValue);
   
+  const handleUpdateClick = () => {
+    console.log("Update button clicked");
+    onUpdateReadings();
+  };
+  
+  const handleHistoryClick = () => {
+    console.log("Load History button clicked");
+    if (onRefreshHistory) {
+      onRefreshHistory();
+    }
+  };
+  
   return (
     <Card>
       <CardHeader className="pb-2">
@@ -40,7 +52,7 @@ const WaterQualityCard = ({
                 variant="outline" 
                 size="sm" 
                 className="h-8 text-xs"
-                onClick={onRefreshHistory}
+                onClick={handleHistoryClick}
               >
                 <Database className="mr-1 h-3 w-3" />
                 Load History
@@ -50,7 +62,7 @@ const WaterQualityCard = ({
               variant="outline" 
               size="sm" 
               className="h-8 text-xs"
-              onClick={onUpdateReadings}
+              onClick={handleUpdateClick}
             >
               <RefreshCw className="mr-1 h-3 w-3" />
               Update

@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { getLatestSensorReadings } from "@/lib/supabase";
 import { SensorReading } from "@/lib/supabase";
 import { toast } from "sonner";
@@ -9,14 +9,16 @@ export function useSensorReadings(limit: number = 100) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   
-  const loadHistoricalData = async () => {
+  const loadHistoricalData = useCallback(async () => {
     try {
+      console.log("Loading historical data...");
       setIsLoading(true);
       setError(null);
       
       const data = await getLatestSensorReadings(limit);
+      console.log("Received data:", data);
       
-      if (data.length === 0) {
+      if (!data || data.length === 0) {
         // Still set the empty array to prevent previous data from showing
         setReadings([]);
         toast.info("No sensor readings found", {
@@ -45,9 +47,10 @@ export function useSensorReadings(limit: number = 100) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [limit]);
 
   useEffect(() => {
+    console.log("useSensorReadings hook mounted, loading data...");
     loadHistoricalData();
     
     // Optional: Set up a polling mechanism to refresh data
@@ -56,7 +59,7 @@ export function useSensorReadings(limit: number = 100) {
     }, 5 * 60 * 1000); // Refresh every 5 minutes
     
     return () => clearInterval(interval);
-  }, [limit]);
+  }, [loadHistoricalData]);
 
   return {
     readings,

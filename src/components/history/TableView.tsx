@@ -26,6 +26,11 @@ const TableView = ({ readings, isLoading, currentPage, setCurrentPage, itemsPerP
     return new Date(dateString).toLocaleString();
   };
 
+  // Helper function to safely format numeric values
+  const safeFormat = (value: number | undefined, decimals: number = 1) => {
+    return typeof value === 'number' ? value.toFixed(decimals) : 'N/A';
+  };
+
   return (
     <Card>
       <CardHeader className="py-4">
@@ -54,26 +59,33 @@ const TableView = ({ readings, isLoading, currentPage, setCurrentPage, itemsPerP
                 </TableHeader>
                 <TableBody>
                   {currentReadings.length > 0 ? (
-                    currentReadings.map((reading) => (
-                      <TableRow key={reading.id}>
-                        <TableCell>{formatDate(reading.created_at)}</TableCell>
-                        <TableCell>
-                          <div className="flex items-center">
-                            <div className={`${getPhColor(reading.ph)} w-3 h-3 rounded-full mr-2`}></div>
-                            {reading.ph.toFixed(1)}
-                          </div>
-                        </TableCell>
-                        <TableCell>{reading.temperature.toFixed(1)}°C</TableCell>
-                        <TableCell>
-                          <div className="flex items-center">
-                            <div className={`${getQualityColor(reading.quality)} w-3 h-3 rounded-full mr-2`}></div>
-                            {reading.quality.toFixed(0)}% ({getQualityDescription(reading.quality)})
-                          </div>
-                        </TableCell>
-                        <TableCell>{getWaterUseRecommendation(reading.ph)}</TableCell>
-                        <TableCell>{reading.data_source}</TableCell>
-                      </TableRow>
-                    ))
+                    currentReadings.map((reading) => {
+                      // Apply safety checks for all numeric values
+                      const phValue = reading.ph ?? 0;
+                      const tempValue = reading.temperature ?? 0;
+                      const qualityValue = reading.quality ?? 0;
+                      
+                      return (
+                        <TableRow key={reading.id}>
+                          <TableCell>{formatDate(reading.created_at)}</TableCell>
+                          <TableCell>
+                            <div className="flex items-center">
+                              <div className={`${getPhColor(phValue)} w-3 h-3 rounded-full mr-2`}></div>
+                              {safeFormat(phValue)}
+                            </div>
+                          </TableCell>
+                          <TableCell>{safeFormat(tempValue)}°C</TableCell>
+                          <TableCell>
+                            <div className="flex items-center">
+                              <div className={`${getQualityColor(qualityValue)} w-3 h-3 rounded-full mr-2`}></div>
+                              {safeFormat(qualityValue, 0)}% ({getQualityDescription(qualityValue)})
+                            </div>
+                          </TableCell>
+                          <TableCell>{getWaterUseRecommendation(phValue)}</TableCell>
+                          <TableCell>{reading.data_source}</TableCell>
+                        </TableRow>
+                      );
+                    })
                   ) : (
                     <TableRow>
                       <TableCell colSpan={6} className="text-center py-4">

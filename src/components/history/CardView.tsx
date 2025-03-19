@@ -25,6 +25,11 @@ const CardView = ({ readings, isLoading, currentPage, setCurrentPage, itemsPerPa
     return new Date(dateString).toLocaleString();
   };
 
+  // Helper function to safely format numeric values
+  const safeFormat = (value: number | undefined, decimals: number = 1) => {
+    return typeof value === 'number' ? value.toFixed(decimals) : 'N/A';
+  };
+
   return (
     <>
       {isLoading ? (
@@ -37,51 +42,58 @@ const CardView = ({ readings, isLoading, currentPage, setCurrentPage, itemsPerPa
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {currentReadings.length > 0 ? (
-              currentReadings.map((reading) => (
-                <Card key={reading.id} className="overflow-hidden">
-                  <div className={`h-2 ${getQualityColor(reading.quality)} w-full`}></div>
-                  <CardHeader className="py-4">
-                    <CardTitle className="flex justify-between items-center text-base">
-                      <span>Reading #{reading.id}</span>
-                      <span className="text-xs text-muted-foreground">
-                        {formatDate(reading.created_at)}
-                      </span>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="pb-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-1">
-                        <p className="text-sm font-medium">pH Level</p>
-                        <div className="flex items-center">
-                          <div className={`${getPhColor(reading.ph)} w-3 h-3 rounded-full mr-2`}></div>
-                          <p className="text-2xl font-semibold">{reading.ph.toFixed(1)}</p>
+              currentReadings.map((reading) => {
+                // Apply safety checks for all numeric values
+                const phValue = reading.ph ?? 0;
+                const tempValue = reading.temperature ?? 0;
+                const qualityValue = reading.quality ?? 0;
+                
+                return (
+                  <Card key={reading.id} className="overflow-hidden">
+                    <div className={`h-2 ${getQualityColor(qualityValue)} w-full`}></div>
+                    <CardHeader className="py-4">
+                      <CardTitle className="flex justify-between items-center text-base">
+                        <span>Reading #{reading.id}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {formatDate(reading.created_at)}
+                        </span>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="pb-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-1">
+                          <p className="text-sm font-medium">pH Level</p>
+                          <div className="flex items-center">
+                            <div className={`${getPhColor(phValue)} w-3 h-3 rounded-full mr-2`}></div>
+                            <p className="text-2xl font-semibold">{safeFormat(phValue)}</p>
+                          </div>
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-sm font-medium">Temperature</p>
+                          <p className="text-2xl font-semibold">{safeFormat(tempValue)}°C</p>
                         </div>
                       </div>
-                      <div className="space-y-1">
-                        <p className="text-sm font-medium">Temperature</p>
-                        <p className="text-2xl font-semibold">{reading.temperature.toFixed(1)}°C</p>
+                      
+                      <div className="mt-4 space-y-1">
+                        <p className="text-sm font-medium">Quality Assessment</p>
+                        <div className="flex items-center">
+                          <div className={`${getQualityColor(qualityValue)} w-3 h-3 rounded-full mr-2`}></div>
+                          <p className="text-lg font-semibold">{safeFormat(qualityValue, 0)}% ({getQualityDescription(qualityValue)})</p>
+                        </div>
                       </div>
-                    </div>
-                    
-                    <div className="mt-4 space-y-1">
-                      <p className="text-sm font-medium">Quality Assessment</p>
-                      <div className="flex items-center">
-                        <div className={`${getQualityColor(reading.quality)} w-3 h-3 rounded-full mr-2`}></div>
-                        <p className="text-lg font-semibold">{reading.quality.toFixed(0)}% ({getQualityDescription(reading.quality)})</p>
+                      
+                      <div className="mt-4 space-y-1">
+                        <p className="text-sm font-medium">Recommended Use</p>
+                        <p className="text-sm">{getWaterUseRecommendation(phValue)}</p>
                       </div>
-                    </div>
-                    
-                    <div className="mt-4 space-y-1">
-                      <p className="text-sm font-medium">Recommended Use</p>
-                      <p className="text-sm">{getWaterUseRecommendation(reading.ph)}</p>
-                    </div>
-                    
-                    <div className="mt-4 pt-2 border-t border-border">
-                      <p className="text-xs text-muted-foreground">Source: {reading.data_source}</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
+                      
+                      <div className="mt-4 pt-2 border-t border-border">
+                        <p className="text-xs text-muted-foreground">Source: {reading.data_source}</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })
             ) : (
               <div className="col-span-full text-center py-12">
                 <p className="text-muted-foreground">No data available</p>
