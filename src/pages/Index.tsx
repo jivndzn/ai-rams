@@ -1,9 +1,9 @@
+
 import { useState, useEffect } from "react";
 import { SensorData, getWaterUseRecommendation, simulateSensorReading } from "@/lib/sensors";
 import { toast } from "sonner";
 import { getGeminiApiKey } from "@/lib/env";
-import { readSensorData, isConnected } from "@/lib/bluetooth";
-import { saveSensorReading, getLatestSensorReadings, SensorReading } from "@/lib/supabase";
+import { saveSensorReading, getLatestSensorReadings } from "@/lib/supabase";
 
 // Components
 import DashboardHeader from "@/components/dashboard/Header";
@@ -13,7 +13,6 @@ import WaterQualityCard from "@/components/dashboard/WaterQualityCard";
 import HistoricalChart from "@/components/dashboard/HistoricalChart";
 import ChatSection from "@/components/dashboard/ChatSection";
 import DashboardFooter from "@/components/dashboard/Footer";
-import BluetoothConnector from "@/components/dashboard/BluetoothConnector";
 
 const Index = () => {
   const [sensorData, setSensorData] = useState<SensorData>({
@@ -104,47 +103,15 @@ const Index = () => {
   
   const updateSensorData = async () => {
     try {
-      // Try to read from Bluetooth device if connected
-      if (isConnected()) {
-        try {
-          const deviceData = await readSensorData();
-          if (deviceData) {
-            // Add timestamp if not present
-            if (!deviceData.timestamp) {
-              deviceData.timestamp = Date.now();
-            }
-            
-            setSensorData(deviceData);
-            setLastUpdateSource("arduino");
-            
-            // Save the Arduino data to Supabase
-            const saved = await saveSensorReading(deviceData, "arduino_uno");
-            if (saved) {
-              toast.success("New sensor data received and saved", {
-                description: `From Arduino at ${new Date().toLocaleTimeString()}`
-              });
-            }
-            
-            return;
-          }
-        } catch (err) {
-          console.error("Failed to read from Arduino:", err);
-          toast.error("Failed to read from Arduino", {
-            description: "Falling back to simulated data"
-          });
-        }
-      }
-      
-      // Fall back to simulated data if no Bluetooth connection or reading failed
+      // Use simulated data
       const newData = simulateSensorReading();
       setSensorData(newData);
       setLastUpdateSource("simulated");
       
-      // Don't toast for simulated data to reduce notification noise
       // Only show notification when debugging
       if (process.env.NODE_ENV === "development") {
         toast.info("Using simulated sensor data", { 
-          description: `No device connected at ${new Date().toLocaleTimeString()}` 
+          description: `Simulation at ${new Date().toLocaleTimeString()}` 
         });
       }
     } catch (error) {
@@ -165,8 +132,6 @@ const Index = () => {
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
           <div className="lg:col-span-2 space-y-4 lg:space-y-6">
-            <BluetoothConnector onUpdateFromDevice={updateSensorData} />
-            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
               <PhCard phValue={sensorData.ph} />
               <TemperatureCard temperatureValue={sensorData.temperature} />
@@ -176,7 +141,7 @@ const Index = () => {
               qualityValue={sensorData.quality}
               recommendation={recommendation}
               onUpdateReadings={handleManualRefresh}
-              dataSource={lastUpdateSource === "arduino" ? "Arduino device" : "Simulation"}
+              dataSource={lastUpdateSource === "arduino" ? "Arduino via Python" : "Simulation"}
               onRefreshHistory={loadHistoricalData}
               lastUpdated={new Date(sensorData.timestamp).toLocaleString()}
             />
