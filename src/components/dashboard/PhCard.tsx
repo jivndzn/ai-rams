@@ -5,9 +5,10 @@ import PhGauge from "@/components/PhGauge";
 
 interface PhCardProps {
   phValue: number;
+  avgPh?: number;
 }
 
-const PhCard = ({ phValue }: PhCardProps) => {
+const PhCard = ({ phValue, avgPh }: PhCardProps) => {
   return (
     <Card>
       <CardHeader className="pb-2">
@@ -18,13 +19,21 @@ const PhCard = ({ phValue }: PhCardProps) => {
       </CardHeader>
       <CardContent>
         <PhGauge value={phValue} />
-        <p className="mt-6 text-sm text-muted-foreground">
-          {phValue < 7 
-            ? "Acidic water (pH < 7)" 
-            : phValue > 7 
-              ? "Alkaline water (pH > 7)" 
-              : "Neutral water (pH = 7)"}
-        </p>
+        <div className="mt-6 space-y-2">
+          <p className="text-sm text-muted-foreground">
+            {phValue < 7 
+              ? "Acidic water (pH < 7)" 
+              : phValue > 7 
+                ? "Alkaline water (pH > 7)" 
+                : "Neutral water (pH = 7)"}
+          </p>
+          
+          {avgPh !== undefined && avgPh > 0 && (
+            <p className="text-xs text-muted-foreground border-t border-border pt-2 mt-2">
+              Average pH (last 10 readings): <span className="font-medium">{avgPh.toFixed(1)}</span>
+            </p>
+          )}
+        </div>
       </CardContent>
     </Card>
   );

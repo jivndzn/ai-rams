@@ -5,9 +5,10 @@ import TemperatureGauge from "@/components/TemperatureGauge";
 
 interface TemperatureCardProps {
   temperatureValue: number;
+  avgTemp?: number;
 }
 
-const TemperatureCard = ({ temperatureValue }: TemperatureCardProps) => {
+const TemperatureCard = ({ temperatureValue, avgTemp }: TemperatureCardProps) => {
   return (
     <Card>
       <CardHeader className="pb-2">
@@ -18,13 +19,21 @@ const TemperatureCard = ({ temperatureValue }: TemperatureCardProps) => {
       </CardHeader>
       <CardContent>
         <TemperatureGauge value={temperatureValue} />
-        <p className="mt-6 text-sm text-muted-foreground">
-          {temperatureValue < 15 
-            ? "Cool water temperature" 
-            : temperatureValue > 25 
-              ? "Warm water temperature" 
-              : "Moderate water temperature"}
-        </p>
+        <div className="mt-6 space-y-2">
+          <p className="text-sm text-muted-foreground">
+            {temperatureValue < 15 
+              ? "Cool water temperature" 
+              : temperatureValue > 25 
+                ? "Warm water temperature" 
+                : "Moderate water temperature"}
+          </p>
+          
+          {avgTemp !== undefined && avgTemp > 0 && (
+            <p className="text-xs text-muted-foreground border-t border-border pt-2 mt-2">
+              Average temperature (last 10 readings): <span className="font-medium">{avgTemp.toFixed(1)}°C</span>
+            </p>
+          )}
+        </div>
       </CardContent>
     </Card>
   );

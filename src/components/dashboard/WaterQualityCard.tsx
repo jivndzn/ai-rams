@@ -12,6 +12,7 @@ interface WaterQualityCardProps {
   dataSource?: string;
   onRefreshHistory?: () => void;
   lastUpdated: string;
+  avgQuality?: number;
 }
 
 const WaterQualityCard = ({ 
@@ -20,7 +21,8 @@ const WaterQualityCard = ({
   onUpdateReadings,
   dataSource = "Simulation",
   onRefreshHistory,
-  lastUpdated
+  lastUpdated,
+  avgQuality
 }: WaterQualityCardProps) => {
   const qualityDescription = getQualityDescription(qualityValue);
   
@@ -69,6 +71,13 @@ const WaterQualityCard = ({
               <h4 className="text-sm font-medium">Recommended Use:</h4>
               <p className="text-sm">{recommendation}</p>
             </div>
+            
+            {avgQuality !== undefined && avgQuality > 0 && (
+              <p className="text-xs text-muted-foreground border-t border-border pt-2 mt-2">
+                Average quality (last 10 readings): <span className="font-medium">{avgQuality.toFixed(0)}%</span>
+              </p>
+            )}
+            
             <p className="text-xs text-muted-foreground mt-2">
               Last updated: {lastUpdated}
             </p>
@@ -78,7 +87,7 @@ const WaterQualityCard = ({
       <CardFooter className="pt-2">
         <p className="text-xs text-muted-foreground">
           Quality assessment is based on turbidity, pH, and temperature measurements.
-          {dataSource === "Arduino via Python" && " Data is saved to Supabase."}
+          {dataSource === "arduino_uno" && " Data is saved to Supabase."}
         </p>
       </CardFooter>
     </Card>
