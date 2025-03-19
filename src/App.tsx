@@ -18,9 +18,10 @@ const App = () => {
   
   useEffect(() => {
     // Set a timeout to hide the loading screen after content has loaded
+    // Make sure this is longer than the combined animation duration in LoadingScreen
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 2500); // Give enough time for LoadingScreen's fade out animation
+    }, 5000); // Increased from 2500ms to 5000ms
     
     return () => clearTimeout(timer);
   }, []);

@@ -1,16 +1,27 @@
+
 import { useState, useEffect } from "react";
 import { Droplets } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const LoadingScreen = () => {
   const [isVisible, setIsVisible] = useState(true);
+  const [isFadingOut, setIsFadingOut] = useState(false);
   
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsVisible(false);
-    }, 20000); // Show loading screen for 5 seconds
+    // Start the fade-out animation after 2.5 seconds
+    const startFadeTimer = setTimeout(() => {
+      setIsFadingOut(true);
+    }, 2500);
     
-    return () => clearTimeout(timer);
+    // Actually remove the component from DOM after animation completes
+    const removeTimer = setTimeout(() => {
+      setIsVisible(false);
+    }, 5000); // Total time before removal (includes fade animation)
+    
+    return () => {
+      clearTimeout(startFadeTimer);
+      clearTimeout(removeTimer);
+    };
   }, []);
 
   // Create multiple raindrop animations
@@ -42,7 +53,7 @@ const LoadingScreen = () => {
     <div 
       className={cn(
         "fixed inset-0 flex flex-col items-center justify-center bg-background z-50",
-        "animate-fade-out transition-opacity duration-1000 ease-in-out",
+        isFadingOut ? "animate-fade-out-slow" : ""
       )}
     >
       <style>
@@ -57,6 +68,19 @@ const LoadingScreen = () => {
             }
             100% {
               transform: translateY(100vh);
+              opacity: 0;
+            }
+          }
+
+          .animate-fade-out-slow {
+            animation: fade-out-slow 2.5s ease-in-out forwards;
+          }
+
+          @keyframes fade-out-slow {
+            0% {
+              opacity: 1;
+            }
+            100% {
               opacity: 0;
             }
           }
