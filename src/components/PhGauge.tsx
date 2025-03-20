@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 import { getPhColor } from "@/lib/sensors";
 import { useTheme } from "@/providers/ThemeProvider";
 import { AlertTriangle } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface PhGaugeProps {
   value: number | undefined;
@@ -13,8 +14,9 @@ const PhGauge = ({ value, className }: PhGaugeProps) => {
   // Handle undefined or null values with a default
   const safeValue = typeof value === 'number' ? value : 7.0;
   
-  // Check for invalid pH readings
+  // Check for invalid pH readings - updated with more specific checks
   const isOutOfRange = safeValue < 0 || safeValue > 14;
+  const isCalibrationError = safeValue > 14 && (safeValue >= 29.9 && safeValue <= 30.0);
   
   // Use a valid display value for the gauge
   const displayValue = isOutOfRange ? 7.0 : safeValue;
@@ -27,6 +29,11 @@ const PhGauge = ({ value, className }: PhGaugeProps) => {
   
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  
+  // Error message based on specific issues
+  const errorMessage = isCalibrationError
+    ? "pH sensor reading around 29.95 indicates the sensor needs calibration. This is a common default value when uncalibrated."
+    : `pH value ${safeValue.toFixed(1)} is outside the valid range (0-14). Check sensor connections and calibration.`;
   
   return (
     <div className={cn(
@@ -53,7 +60,16 @@ const PhGauge = ({ value, className }: PhGaugeProps) => {
         <div className={cn("h-12 w-3 rounded-full", phColor)}>
           <span className={`absolute -bottom-6 left-1/2 transform -translate-x-1/2 font-medium ${isDarkMode ? "text-slate-300" : ""}`}>
             {isOutOfRange ? (
-              <AlertTriangle className="h-3 w-3 text-destructive" />
+              <TooltipProvider delayDuration={300}>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <AlertTriangle className="h-3 w-3 text-destructive" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="text-xs max-w-xs">{errorMessage}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             ) : (
               `${displayValue.toFixed(1)}`
             )}
@@ -71,7 +87,9 @@ const PhGauge = ({ value, className }: PhGaugeProps) => {
       {isOutOfRange && (
         <div className="absolute inset-0 flex items-center justify-center">
           <div className={`px-3 py-1 text-xs font-medium rounded-full ${isDarkMode ? "bg-red-900/40 text-red-300" : "bg-red-100 text-red-800"}`}>
-            Calibration Error: {safeValue}
+            {isCalibrationError 
+              ? 'pH Sensor Needs Calibration (29.95)' 
+              : `Out of Range: ${safeValue.toFixed(1)}`}
           </div>
         </div>
       )}
