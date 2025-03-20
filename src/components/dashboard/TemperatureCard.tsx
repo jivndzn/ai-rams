@@ -1,8 +1,10 @@
-import { Thermometer, AlertTriangle } from "lucide-react";
+
+import { Thermometer, AlertTriangle, Settings } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import TemperatureGauge from "@/components/TemperatureGauge";
 import { useTheme } from "@/providers/ThemeProvider";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface TemperatureCardProps {
   temperatureValue: number;
@@ -13,8 +15,12 @@ const TemperatureCard = ({ temperatureValue, avgTemp }: TemperatureCardProps) =>
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
   
-  const isAbnormal = temperatureValue < 0 || temperatureValue > 40;
+  // Detect specific calibration errors in temperature sensor
+  const isCalibrationError = temperatureValue === -127.0;
+  const isOutOfRange = temperatureValue < 0 || temperatureValue > 40;
+  const isAbnormal = isCalibrationError || isOutOfRange;
   
+  // Use a display value that's safe for the gauge
   const displayValue = isAbnormal ? 22 : temperatureValue;
   
   return (
@@ -27,10 +33,33 @@ const TemperatureCard = ({ temperatureValue, avgTemp }: TemperatureCardProps) =>
           </div>
           
           {isAbnormal && (
-            <Badge variant="destructive" className="ml-auto">
-              <AlertTriangle className="h-3 w-3 mr-1" />
-              Sensor Error
-            </Badge>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Badge variant="destructive" className="ml-auto">
+                    {isCalibrationError ? (
+                      <>
+                        <Settings className="h-3 w-3 mr-1 animate-spin" />
+                        Calibration Error
+                      </>
+                    ) : (
+                      <>
+                        <AlertTriangle className="h-3 w-3 mr-1" />
+                        Sensor Error
+                      </>
+                    )}
+                  </Badge>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Detected value: {temperatureValue}°C</p>
+                  <p className="text-xs mt-1">
+                    {isCalibrationError 
+                      ? "The value -127.0°C indicates a sensor calibration issue" 
+                      : "Temperature is outside the valid range of 0-40°C"}
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           )}
         </CardTitle>
       </CardHeader>
@@ -39,7 +68,9 @@ const TemperatureCard = ({ temperatureValue, avgTemp }: TemperatureCardProps) =>
         <div className="mt-6 space-y-2">
           {isAbnormal ? (
             <p className={`text-sm font-medium text-destructive`}>
-              Invalid reading detected: {temperatureValue}°C
+              {isCalibrationError 
+                ? "Sensor needs calibration (reading: -127.0°C)" 
+                : `Invalid reading detected: ${temperatureValue}°C`}
             </p>
           ) : (
             <p className={`text-sm ${isDarkMode ? "text-slate-400" : "text-slate-600"}`}>
@@ -59,9 +90,15 @@ const TemperatureCard = ({ temperatureValue, avgTemp }: TemperatureCardProps) =>
         </div>
       </CardContent>
       
-      {isAbnormal && (
+      {isCalibrationError && (
         <CardFooter className={`pt-0 text-xs ${isDarkMode ? "text-amber-400" : "text-amber-700"}`}>
-          <p>Check sensor connection or calibration. Using default display value.</p>
+          <p>The -127.0°C reading is a known calibration issue with this type of sensor. Check Arduino wiring or code.</p>
+        </CardFooter>
+      )}
+      
+      {isOutOfRange && !isCalibrationError && (
+        <CardFooter className={`pt-0 text-xs ${isDarkMode ? "text-amber-400" : "text-amber-700"}`}>
+          <p>Reading outside valid range (0-40°C). Check sensor placement and calibration.</p>
         </CardFooter>
       )}
     </Card>
