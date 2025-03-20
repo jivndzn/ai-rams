@@ -1,5 +1,5 @@
 
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 // Types for our sensor data
@@ -7,6 +7,8 @@ export type SensorData = {
   temperature: number;
   ph: number;
   quality: number;
+  timestamp?: number;
+  data_source?: string;
 };
 
 // Types for our database table
@@ -19,12 +21,6 @@ export type SensorReading = {
   quality: number;
   data_source: string;
 };
-
-// Create a Supabase client with credentials
-const supabaseUrl = 'https://exkuzazecthqeoogpsfn.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4a3V6YXplY3RocWVvb2dwc2ZuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDIyOTIzOTUsImV4cCI6MjA1Nzg2ODM5NX0.f8-TBMIsFDv773uNzRNxycJyVgZY4vIRANLxsol0y5Y';
-
-export const supabase = createClient(supabaseUrl, supabaseKey);
 
 /**
  * Saves sensor data to Supabase
@@ -43,7 +39,7 @@ export async function saveSensorReading(
     const { error } = await supabase
       .from('sensor_readings')
       .insert({
-        ph: data.ph,  // This will use lowercase 'ph'
+        pH: data.ph,  // Using uppercase 'pH' to match the table schema
         temperature: data.temperature,
         quality: data.quality,
         data_source: source
@@ -99,10 +95,11 @@ export async function getLatestSensorReadings(
     // Process data to ensure ph values are accessible
     const processedData = data?.map(reading => {
       // Handle both lowercase 'ph' and uppercase 'pH' cases
-      if (reading.pH !== undefined && reading.ph === undefined) {
-        return { ...reading, ph: reading.pH };
-      }
-      return reading;
+      const phValue = reading.pH !== undefined ? reading.pH : reading.ph;
+      return { 
+        ...reading, 
+        ph: phValue 
+      };
     }) || [];
 
     return processedData;
@@ -134,7 +131,7 @@ export async function getAverageSensorReadings(
     
     // Handle both ph and pH
     const avgPh = readings.reduce((sum, reading) => {
-      const phValue = reading.ph !== undefined ? reading.ph : (reading.pH !== undefined ? reading.pH : 0);
+      const phValue = reading.ph !== undefined ? reading.ph : (reading.pH as number | undefined) ?? 0;
       return sum + phValue;
     }, 0) / readings.length;
     

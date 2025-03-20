@@ -1,6 +1,6 @@
 
 import { useState, useEffect, useCallback } from "react";
-import { getLatestSensorReadings } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 import { SensorReading } from "@/lib/supabase";
 import { toast } from "sonner";
 
@@ -15,7 +15,14 @@ export function useSensorReadings(limit: number = 100) {
       setIsLoading(true);
       setError(null);
       
-      const data = await getLatestSensorReadings(limit);
+      const { data, error } = await supabase
+        .from('sensor_readings')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(limit);
+      
+      if (error) throw error;
+      
       console.log("Received data:", data);
       
       if (!data || data.length === 0) {
@@ -25,12 +32,16 @@ export function useSensorReadings(limit: number = 100) {
           description: "Connect your Arduino to start collecting data"
         });
       } else {
-        // Process the data to handle potential column name differences
+        // Process the data to standardize pH field
         const processedData = data.map(reading => ({
-          ...reading,
-          // Ensure we handle both "ph" and "pH" cases from the database
-          ph: reading.ph !== undefined ? reading.ph : (reading.pH as any)
+          id: reading.id,
+          created_at: reading.created_at,
+          ph: reading.pH !== undefined ? reading.pH : reading.ph,
+          temperature: reading.temperature,
+          quality: reading.quality,
+          data_source: reading.data_source
         }));
+        
         setReadings(processedData);
         toast.success("Historical data loaded", {
           description: `Loaded ${processedData.length} records from database`
