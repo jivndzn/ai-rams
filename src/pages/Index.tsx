@@ -56,11 +56,11 @@ const Index = () => {
       if (readings.length > 0) {
         // Convert Supabase data to SensorData format
         const historicalReadings: SensorData[] = readings.map(reading => ({
-          ph: reading.ph,
-          temperature: reading.temperature,
-          quality: reading.quality,
+          ph: reading.ph ?? reading.pH ?? 7.0, // Fall back to pH if ph is not available
+          temperature: reading.temperature ?? 0,
+          quality: reading.quality ?? 0,
           timestamp: reading.created_at ? new Date(reading.created_at).getTime() : Date.now(),
-          data_source: reading.data_source
+          data_source: reading.data_source ?? "unknown"
         }));
         
         setHistoricalData(historicalReadings);
