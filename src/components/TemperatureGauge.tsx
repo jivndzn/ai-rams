@@ -1,13 +1,15 @@
 
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/providers/ThemeProvider";
+import { AlertTriangle } from "lucide-react";
 
 interface TemperatureGaugeProps {
   value: number | undefined;
   className?: string;
+  isError?: boolean;
 }
 
-const TemperatureGauge = ({ value, className }: TemperatureGaugeProps) => {
+const TemperatureGauge = ({ value, className, isError = false }: TemperatureGaugeProps) => {
   // Handle undefined or null values with a default
   const safeValue = typeof value === 'number' ? value : 22.0;
   
@@ -20,6 +22,11 @@ const TemperatureGauge = ({ value, className }: TemperatureGaugeProps) => {
     tempColor = "bg-red-500";
   } else if (safeValue > 20) {
     tempColor = "bg-orange-400";
+  }
+  
+  // If in error state, override the color
+  if (isError) {
+    tempColor = "bg-destructive";
   }
   
   const { theme } = useTheme();
@@ -49,10 +56,23 @@ const TemperatureGauge = ({ value, className }: TemperatureGaugeProps) => {
       >
         <div className={cn("h-12 w-3 rounded-full", tempColor)}>
           <span className={`absolute -bottom-6 left-1/2 transform -translate-x-1/2 font-medium ${isDarkMode ? "text-slate-300" : ""}`}>
-            {safeValue.toFixed(1)}°C
+            {isError ? (
+              <AlertTriangle className="h-3 w-3 text-destructive" />
+            ) : (
+              `${safeValue.toFixed(1)}°C`
+            )}
           </span>
         </div>
       </div>
+      
+      {/* Error overlay */}
+      {isError && (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className={`px-3 py-1 text-xs font-medium rounded-full ${isDarkMode ? "bg-red-900/40 text-red-300" : "bg-red-100 text-red-800"}`}>
+            Sensor Error
+          </div>
+        </div>
+      )}
     </div>
   );
 };

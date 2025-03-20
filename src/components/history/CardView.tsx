@@ -4,6 +4,8 @@ import { getQualityDescription, getQualityColor, getPhColor, getWaterUseRecommen
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import HistoryPagination from "./HistoryPagination";
+import { AlertTriangle } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 interface CardViewProps {
   readings: SensorReading[];
@@ -31,6 +33,11 @@ const CardView = ({ readings, isLoading, currentPage, setCurrentPage, itemsPerPa
   const safeFormat = (value: number | undefined, decimals: number = 1) => {
     return typeof value === 'number' ? value.toFixed(decimals) : 'N/A';
   };
+  
+  // Validate range of values
+  const isValidTemperature = (temp?: number) => temp !== undefined && temp >= 0 && temp <= 40;
+  const isValidPh = (ph?: number) => ph !== undefined && ph >= 0 && ph <= 14;
+  const isValidQuality = (quality?: number) => quality !== undefined && quality >= 0 && quality <= 100;
 
   return (
     <>
@@ -46,9 +53,17 @@ const CardView = ({ readings, isLoading, currentPage, setCurrentPage, itemsPerPa
             {currentReadings.length > 0 ? (
               currentReadings.map((reading) => {
                 // Apply safety checks for all numeric values
-                const phValue = reading.ph ?? 0;
+                const phValue = reading.ph ?? reading.pH ?? 0;
                 const tempValue = reading.temperature ?? 0;
                 const qualityValue = reading.quality ?? 0;
+                
+                // Determine if each value is valid
+                const tempValid = isValidTemperature(tempValue);
+                const phValid = isValidPh(phValue);
+                const qualityValid = isValidQuality(qualityValue);
+                
+                // Determine if any value is invalid
+                const hasInvalidValues = !tempValid || !phValid || !qualityValid;
                 
                 return (
                   <Card key={reading.id} className="overflow-hidden">
@@ -62,31 +77,58 @@ const CardView = ({ readings, isLoading, currentPage, setCurrentPage, itemsPerPa
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="pb-4">
+                      {hasInvalidValues && (
+                        <Badge variant="destructive" className="mb-3">
+                          <AlertTriangle className="h-3 w-3 mr-1" />
+                          Contains out-of-range values
+                        </Badge>
+                      )}
+                      
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-1">
                           <p className="text-sm font-medium">pH Level</p>
                           <div className="flex items-center">
-                            <div className={`${getPhColor(phValue)} w-3 h-3 rounded-full mr-2`}></div>
-                            <p className="text-2xl font-semibold">{safeFormat(phValue)}</p>
+                            {phValid ? (
+                              <>
+                                <div className={`${getPhColor(phValue)} w-3 h-3 rounded-full mr-2`}></div>
+                                <p className="text-2xl font-semibold">{safeFormat(phValue)}</p>
+                              </>
+                            ) : (
+                              <p className="text-sm text-destructive">Invalid: {safeFormat(phValue)}</p>
+                            )}
                           </div>
                         </div>
                         <div className="space-y-1">
                           <p className="text-sm font-medium">Temperature</p>
-                          <p className="text-2xl font-semibold">{safeFormat(tempValue)}°C</p>
+                          {tempValid ? (
+                            <p className="text-2xl font-semibold">{safeFormat(tempValue)}°C</p>
+                          ) : (
+                            <p className="text-sm text-destructive">Invalid: {safeFormat(tempValue)}°C</p>
+                          )}
                         </div>
                       </div>
                       
                       <div className="mt-4 space-y-1">
                         <p className="text-sm font-medium">Quality Assessment</p>
                         <div className="flex items-center">
-                          <div className={`${getQualityColor(qualityValue)} w-3 h-3 rounded-full mr-2`}></div>
-                          <p className="text-lg font-semibold">{safeFormat(qualityValue, 0)}% ({getQualityDescription(qualityValue)})</p>
+                          {qualityValid ? (
+                            <>
+                              <div className={`${getQualityColor(qualityValue)} w-3 h-3 rounded-full mr-2`}></div>
+                              <p className="text-lg font-semibold">{safeFormat(qualityValue, 0)}% ({getQualityDescription(qualityValue)})</p>
+                            </>
+                          ) : (
+                            <p className="text-sm text-destructive">Invalid: {safeFormat(qualityValue, 0)}%</p>
+                          )}
                         </div>
                       </div>
                       
                       <div className="mt-4 space-y-1">
                         <p className="text-sm font-medium">Recommended Use</p>
-                        <p className="text-sm">{getWaterUseRecommendation(phValue)}</p>
+                        {phValid ? (
+                          <p className="text-sm">{getWaterUseRecommendation(phValue)}</p>
+                        ) : (
+                          <p className="text-sm text-muted-foreground">Unavailable (invalid pH value)</p>
+                        )}
                       </div>
                       
                       <div className="mt-4 pt-2 border-t border-border">
