@@ -40,7 +40,7 @@ export function useSensorReadings(limit: number = 100) {
           pH: reading.pH, // Keep the original property too
           temperature: reading.temperature,
           quality: reading.quality,
-          data_source: reading.data_source
+          data_source: reading.data_source || "unknown" // Ensure data_source is never undefined
         }));
         
         setReadings(processedData);

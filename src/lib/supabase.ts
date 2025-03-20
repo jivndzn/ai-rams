@@ -8,7 +8,7 @@ export type SensorData = {
   ph: number;
   quality: number;
   timestamp?: number;
-  data_source?: string;
+  data_source: string;  // Changed from optional to required
 };
 
 // Types for our database table
@@ -92,12 +92,13 @@ export async function getLatestSensorReadings(
 
     console.log("Received data from Supabase:", data);
     
-    // Process data to ensure ph values are accessible
+    // Process data to ensure ph values are accessible and data_source is never undefined
     const processedData = data?.map(reading => {
       // Handle the uppercase 'pH' from the database
       return { 
         ...reading, 
-        ph: reading.pH  // Map the uppercase pH to lowercase ph for app consistency
+        ph: reading.pH,  // Map the uppercase pH to lowercase ph for app consistency
+        data_source: reading.data_source || "unknown" // Ensure data_source is never undefined
       };
     }) || [];
 

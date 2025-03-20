@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { SensorData, getWaterUseRecommendation } from "@/lib/sensors";
 import { toast } from "sonner";
 import { getGeminiApiKey } from "@/lib/env";
-import { getLatestSensorReadings, getAverageSensorReadings } from "@/lib/supabase";
+import { getLatestSensorReadings, getAverageSensorReadings, SensorReading } from "@/lib/supabase";
 
 // Components
 import DashboardHeader from "@/components/dashboard/Header";
@@ -24,7 +24,7 @@ const Index = () => {
     timestamp: Date.now(),
     data_source: "loading"
   });
-  const [historicalData, setHistoricalData] = useState<SensorData[]>([]);
+  const [historicalData, setHistoricalData] = useState<SensorReading[]>([]);
   const [apiKey, setApiKey] = useState<string>(getGeminiApiKey());
   const [recommendation, setRecommendation] = useState<string>("");
   const [lastUpdateSource, setLastUpdateSource] = useState<string>("loading");
@@ -63,7 +63,8 @@ const Index = () => {
           data_source: reading.data_source ?? "unknown"
         }));
         
-        setHistoricalData(historicalReadings);
+        // Store the original readings in historicalData for the chart
+        setHistoricalData(readings);
         
         // Update current sensor data with the most recent reading
         const mostRecent = historicalReadings[0];

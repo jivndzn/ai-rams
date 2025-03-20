@@ -41,7 +41,7 @@ const HistoricalChart = ({ historicalData, isLoading = false }: HistoricalChartP
         {isLoading ? (
           <div className="h-[300px] flex items-center justify-center">
             <div className="space-y-2 w-full">
-              <Skeleton className="h-[250px] w-full rounded-xl" />
+              <Skeleton className="h-[250px] w-full rounded-xl" /> 
               <div className="flex justify-between">
                 <Skeleton className="h-4 w-[100px]" /> 
                 <Skeleton className="h-4 w-[100px]" />

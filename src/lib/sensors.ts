@@ -4,7 +4,7 @@ export interface SensorData {
   temperature: number;
   quality: number;
   timestamp: number;
-  data_source?: string;
+  data_source: string;
 }
 
 // Function to determine water use recommendation based on pH
@@ -138,6 +138,7 @@ export function getHistoricalData(hours: number = 24): SensorData[] {
       temperature: 18 + Math.random() * 10,
       quality: 40 + Math.random() * 50, // Higher values represent dirtier water in Arduino
       timestamp: now - (hours - i) * hourInMs,
+      data_source: "simulated"
     });
   }
   
