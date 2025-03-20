@@ -36,7 +36,7 @@ export function useSensorReadings(limit: number = 100) {
         const processedData = data.map(reading => ({
           id: reading.id,
           created_at: reading.created_at,
-          ph: reading.pH !== undefined ? reading.pH : reading.ph,
+          ph: reading.pH, // Use the correct property name from the database
           temperature: reading.temperature,
           quality: reading.quality,
           data_source: reading.data_source

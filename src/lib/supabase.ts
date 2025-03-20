@@ -15,8 +15,8 @@ export type SensorData = {
 export type SensorReading = {
   id?: number;
   created_at?: string;
-  ph?: number;    // For lowercase column name
-  pH?: number;    // For uppercase column name (from Python script)
+  ph?: number;    // For our standardized field name in the app
+  pH?: number;    // For uppercase column name in the database
   temperature: number;
   quality: number;
   data_source: string;
@@ -94,11 +94,10 @@ export async function getLatestSensorReadings(
     
     // Process data to ensure ph values are accessible
     const processedData = data?.map(reading => {
-      // Handle both lowercase 'ph' and uppercase 'pH' cases
-      const phValue = reading.pH !== undefined ? reading.pH : reading.ph;
+      // Handle the uppercase 'pH' from the database
       return { 
         ...reading, 
-        ph: phValue 
+        ph: reading.pH  // Map the uppercase pH to lowercase ph for app consistency
       };
     }) || [];
 
@@ -129,7 +128,7 @@ export async function getAverageSensorReadings(
     
     const avgTemp = readings.reduce((sum, reading) => sum + reading.temperature, 0) / readings.length;
     
-    // Handle both ph and pH
+    // For pH, we now use the standardized property mapping
     const avgPh = readings.reduce((sum, reading) => {
       const phValue = reading.ph !== undefined ? reading.ph : (reading.pH as number | undefined) ?? 0;
       return sum + phValue;
