@@ -1,6 +1,5 @@
 
-import { Droplets, RefreshCw, Database, Waves, Info, AlertTriangle } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Droplets, Waves, AlertTriangle } from "lucide-react";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import QualityGauge from "@/components/QualityGauge";
 import { getQualityDescription, getTurbidityDescription, getTurbidityRecommendation } from "@/lib/sensors";
@@ -36,18 +35,6 @@ const WaterQualityCard = ({
   
   const isConcerning = qualityValue > 70; // Adjusted to align with quality levels
   
-  const handleUpdateClick = () => {
-    console.log("Update button clicked");
-    onUpdateReadings();
-  };
-  
-  const handleHistoryClick = () => {
-    console.log("Load History button clicked");
-    if (onRefreshHistory) {
-      onRefreshHistory();
-    }
-  };
-  
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
   
@@ -59,28 +46,6 @@ const WaterQualityCard = ({
             <Droplets className="mr-2 h-5 w-5 text-blue-400" />
             {isMobile ? "Quality Assessment" : "Rainwater Quality Assessment"}
           </CardTitle>
-          <div className="flex flex-wrap gap-2">
-            {onRefreshHistory && (
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className={`h-8 text-xs ${isDarkMode ? "bg-slate-800 border-slate-700 hover:bg-slate-700 text-slate-200" : "bg-slate-100 border-slate-200 hover:bg-slate-200 text-slate-800"}`}
-                onClick={handleHistoryClick}
-              >
-                <Database className="mr-1 h-3 w-3" />
-                {isMobile ? "" : "Load "}History
-              </Button>
-            )}
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className={`h-8 text-xs ${isDarkMode ? "bg-slate-800 border-slate-700 hover:bg-slate-700 text-slate-200" : "bg-slate-100 border-slate-200 hover:bg-slate-200 text-slate-800"}`}
-              onClick={handleUpdateClick}
-            >
-              <RefreshCw className="mr-1 h-3 w-3" />
-              Update
-            </Button>
-          </div>
         </div>
       </CardHeader>
       <CardContent className="pb-2 pt-4">

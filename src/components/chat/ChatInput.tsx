@@ -1,5 +1,5 @@
 
-import { Send, RotateCcw } from "lucide-react";
+import { Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -18,25 +18,10 @@ const ChatInput = ({
   setInput, 
   handleSendMessage, 
   handleKeyDown,
-  isLoading,
-  onUpdateSensors
+  isLoading
 }: ChatInputProps) => {
   return (
     <div className="relative mt-auto">
-      <div className="flex space-x-2 mb-2">
-        {onUpdateSensors && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onUpdateSensors}
-            disabled={isLoading}
-            className="flex items-center"
-          >
-            <RotateCcw className="h-3.5 w-3.5 mr-1" />
-            Update Sensors
-          </Button>
-        )}
-      </div>
       <Textarea
         value={input}
         onChange={(e) => setInput(e.target.value)}
