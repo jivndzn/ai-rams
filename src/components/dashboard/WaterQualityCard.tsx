@@ -1,4 +1,3 @@
-
 import { Droplets, RefreshCw, Database, Waves, Info, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useTheme } from "@/providers/ThemeProvider";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { formatTimestamp } from "@/lib/datetime";
 
 interface WaterQualityCardProps {
   qualityValue: number;
@@ -33,7 +33,6 @@ const WaterQualityCard = ({
   const turbidityRecommendation = getTurbidityRecommendation(qualityValue);
   const isMobile = useIsMobile();
   
-  // Determine if water quality is concerning
   const isConcerning = qualityValue > 80;
   
   const handleUpdateClick = () => {
@@ -48,7 +47,6 @@ const WaterQualityCard = ({
     }
   };
   
-  // Get the current theme
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
   
@@ -134,7 +132,7 @@ const WaterQualityCard = ({
             )}
             
             <p className={`text-xs ${isDarkMode ? "text-slate-500" : "text-slate-500"}`}>
-              Last updated: <span className={isDarkMode ? "text-slate-400" : "text-slate-600"}>{lastUpdated}</span>
+              Last updated: <span className={isDarkMode ? "text-slate-400" : "text-slate-600"}>{formatTimestamp(new Date(lastUpdated))}</span>
             </p>
           </div>
         </div>

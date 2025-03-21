@@ -4,6 +4,7 @@ import { SensorData, getWaterUseRecommendation } from "@/lib/sensors";
 import { toast } from "sonner";
 import { getGeminiApiKey } from "@/lib/env";
 import { getLatestSensorReadings, getAverageSensorReadings, SensorReading } from "@/lib/supabase";
+import { formatTimestamp, getCurrentDateFormatted } from "@/lib/datetime";
 
 // Components
 import DashboardHeader from "@/components/dashboard/Header";
@@ -120,12 +121,17 @@ const Index = () => {
         
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-bold">Water Quality Dashboard</h2>
-          <Button 
-            variant="outline" 
-            onClick={handleViewHistory}
-          >
-            View Full History
-          </Button>
+          <div className="flex items-center gap-4">
+            <div className="text-sm text-muted-foreground">
+              {getCurrentDateFormatted()} (Manila)
+            </div>
+            <Button 
+              variant="outline" 
+              onClick={handleViewHistory}
+            >
+              View Full History
+            </Button>
+          </div>
         </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
@@ -141,7 +147,7 @@ const Index = () => {
               onUpdateReadings={loadHistoricalData}
               dataSource={lastUpdateSource}
               onRefreshHistory={loadHistoricalData}
-              lastUpdated={new Date(sensorData.timestamp).toLocaleString()}
+              lastUpdated={sensorData.timestamp.toString()}
               avgQuality={averages.avgQuality}
             />
             

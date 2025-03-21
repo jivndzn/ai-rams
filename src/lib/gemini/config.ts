@@ -31,6 +31,10 @@ export const DEFAULT_GENERATION_CONFIG = {
   max_output_tokens: 1024
 };
 
+// System timezone settings
+export const SYSTEM_TIMEZONE = 'Asia/Manila';
+export const SYSTEM_LOCALE = 'en-PH';
+
 // System prompt for chat mode
 export const SYSTEM_PROMPT = `You are a friendly research assistant for the AI-RAMS (AI-Integrated Rainwater Management System) project. 
 Your primary purpose is providing information about rainwater quality data, sensor readings, weather forecasts, and sustainable water management.
@@ -50,6 +54,6 @@ Guidelines:
    - Politely explain: "I'm specialized in water quality analysis and the AI-RAMS system. I can help with questions about your water readings, system functionality, or weather predictions related to water collection. What would you like to know about your rainwater data?"
    - DO NOT attempt to answer off-topic questions even if you know the answer.
 
-4. When users ask about time-related information, reference the timestamp of the most recent readings.
+4. When users ask about time-related information, reference the timestamp of the most recent readings and indicate that you're operating in Manila, Philippines timezone.
 
 5. Keep answers focused, helpful, and relevant to the AI-RAMS system and water quality management.`;

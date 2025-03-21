@@ -1,9 +1,9 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SensorReading } from "@/lib/supabase";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { Skeleton } from "@/components/ui/skeleton";
+import { formatTimeForChart } from "@/lib/datetime";
 
 interface HistoricalChartProps {
   historicalData: SensorReading[];
@@ -11,18 +11,9 @@ interface HistoricalChartProps {
 }
 
 const HistoricalChart = ({ historicalData, isLoading = false }: HistoricalChartProps) => {
-  // Format date for display in chart
-  const formatDate = (dateString: string | undefined) => {
-    if (!dateString) return "";
-    return new Date(dateString).toLocaleTimeString([], { 
-      hour: '2-digit', 
-      minute: '2-digit' 
-    });
-  };
-
   // Process data for the chart
   const chartData = historicalData.map(reading => ({
-    time: formatDate(reading.created_at),
+    time: formatTimeForChart(reading.created_at),
     ph: reading.ph ?? reading.pH,  // Handle both ph and pH properties
     temperature: reading.temperature,
     quality: reading.quality,
