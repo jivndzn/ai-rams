@@ -47,7 +47,9 @@ const ChatBox = ({ sensorData, apiKey, setApiKey }: ChatBoxProps) => {
   const handleUpdateSensorMessage = () => {
     setInput("Can you update the sensors please");
     setTimeout(() => {
-      handleSendMessage("Can you update the sensors please");
+      // The error was here - we were passing an argument to handleSendMessage
+      // but the function doesn't accept arguments in this context
+      handleSendMessage();
     }, 100);
   };
 
