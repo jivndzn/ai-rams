@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { Filter } from "lucide-react";
+import { Filter, Calendar as CalendarIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
@@ -9,6 +9,10 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SensorReading } from "@/lib/supabase";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 interface FilterPanelProps {
   readings: SensorReading[];
@@ -37,6 +41,46 @@ const FilterPanel = ({
 }: FilterPanelProps) => {
   const isMobile = useIsMobile();
   const uniqueSources = ["all", ...new Set(readings.map(r => r.data_source))];
+  
+  // Convert string dates to Date objects for Calendar
+  const [fromDate, setFromDate] = useState<Date | undefined>(
+    filters.dateFrom ? new Date(filters.dateFrom) : undefined
+  );
+  
+  const [toDate, setToDate] = useState<Date | undefined>(
+    filters.dateTo ? new Date(filters.dateTo) : undefined
+  );
+  
+  // Update filters when dates change
+  const handleFromDateChange = (date: Date | undefined) => {
+    setFromDate(date);
+    if (date) {
+      setFilters({
+        ...filters,
+        dateFrom: format(date, 'yyyy-MM-dd')
+      });
+    } else {
+      setFilters({
+        ...filters,
+        dateFrom: ""
+      });
+    }
+  };
+  
+  const handleToDateChange = (date: Date | undefined) => {
+    setToDate(date);
+    if (date) {
+      setFilters({
+        ...filters,
+        dateTo: format(date, 'yyyy-MM-dd')
+      });
+    } else {
+      setFilters({
+        ...filters,
+        dateTo: ""
+      });
+    }
+  };
 
   return (
     <>
@@ -57,23 +101,57 @@ const FilterPanel = ({
           <CardContent>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="dateFrom">Date From</Label>
-                <Input 
-                  id="dateFrom" 
-                  type="date" 
-                  value={filters.dateFrom}
-                  onChange={(e) => setFilters({...filters, dateFrom: e.target.value})}
-                />
+                <Label>Date From</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !fromDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {fromDate ? format(fromDate, "PPP") : <span>Pick a start date</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={fromDate}
+                      onSelect={handleFromDateChange}
+                      initialFocus
+                      className={cn("p-3 pointer-events-auto")}
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="dateTo">Date To</Label>
-                <Input 
-                  id="dateTo" 
-                  type="date" 
-                  value={filters.dateTo}
-                  onChange={(e) => setFilters({...filters, dateTo: e.target.value})}
-                />
+                <Label>Date To</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !toDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {toDate ? format(toDate, "PPP") : <span>Pick an end date</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={toDate}
+                      onSelect={handleToDateChange}
+                      initialFocus
+                      className={cn("p-3 pointer-events-auto")}
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
               
               <div className="space-y-2">
@@ -150,17 +228,21 @@ const FilterPanel = ({
             <div className="flex justify-end mt-4">
               <Button 
                 variant="outline" 
-                onClick={() => setFilters({
-                  dateFrom: "",
-                  dateTo: "",
-                  phMin: 0,
-                  phMax: 14,
-                  tempMin: 0,
-                  tempMax: 40,
-                  qualityMin: 0,
-                  qualityMax: 100,
-                  source: "all"
-                })}
+                onClick={() => {
+                  setFromDate(undefined);
+                  setToDate(undefined);
+                  setFilters({
+                    dateFrom: "",
+                    dateTo: "",
+                    phMin: 0,
+                    phMax: 14,
+                    tempMin: 0,
+                    tempMax: 40,
+                    qualityMin: 0,
+                    qualityMax: 100,
+                    source: "all"
+                  });
+                }}
               >
                 Reset Filters
               </Button>

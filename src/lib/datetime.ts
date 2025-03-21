@@ -1,7 +1,21 @@
 
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, isValid } from 'date-fns';
 import { formatInTimeZone } from 'date-fns-tz';
 import { SYSTEM_TIMEZONE } from './gemini/config';
+
+/**
+ * Checks if a date is valid
+ * @param date Date to check
+ * @returns boolean indicating if date is valid
+ */
+export function isValidDate(date: Date | number | string): boolean {
+  if (typeof date === 'string') {
+    // Try to parse the string as a date
+    const parsed = new Date(date);
+    return isValid(parsed);
+  }
+  return isValid(new Date(date));
+}
 
 /**
  * Formats a date with the system's configured timezone
@@ -10,17 +24,27 @@ import { SYSTEM_TIMEZONE } from './gemini/config';
  * @returns Formatted date string
  */
 export function formatDate(date: Date | number | string, formatStr: string = 'PPpp'): string {
-  let dateObj: Date;
-  
-  if (typeof date === 'string') {
-    // Handle ISO strings
-    dateObj = parseISO(date);
-  } else {
-    dateObj = new Date(date);
+  try {
+    let dateObj: Date;
+    
+    if (typeof date === 'string') {
+      // Handle ISO strings
+      dateObj = parseISO(date);
+    } else {
+      dateObj = new Date(date);
+    }
+    
+    // Check if the date is valid before formatting
+    if (!isValid(dateObj)) {
+      return 'Invalid date';
+    }
+    
+    // Format with the specified format string and timezone
+    return formatInTimeZone(dateObj, SYSTEM_TIMEZONE, formatStr);
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    return 'Invalid date';
   }
-  
-  // Format with the specified format string and timezone
-  return formatInTimeZone(dateObj, SYSTEM_TIMEZONE, formatStr);
 }
 
 /**
@@ -47,5 +71,6 @@ export function getCurrentDateFormatted(): string {
  */
 export function formatTimeForChart(dateString: string | undefined): string {
   if (!dateString) return "";
+  if (!isValidDate(dateString)) return "Invalid";
   return formatDate(dateString, 'h:mm a');
 }
