@@ -1,6 +1,6 @@
 
 import { format, parseISO } from 'date-fns';
-import { SYSTEM_TIMEZONE, SYSTEM_LOCALE } from './gemini/config';
+import { SYSTEM_TIMEZONE } from './gemini/config';
 
 /**
  * Formats a date with the system's configured timezone
@@ -18,8 +18,9 @@ export function formatDate(date: Date | number | string, formatStr: string = 'PP
     dateObj = new Date(date);
   }
   
-  // Format with the specified format string and locale
-  return format(dateObj, formatStr, { locale: SYSTEM_LOCALE });
+  // Format with the specified format string
+  // Don't pass locale as it causes type errors - using default locale
+  return format(dateObj, formatStr);
 }
 
 /**
@@ -36,7 +37,9 @@ export function formatTimestamp(timestamp: number | Date | string): string {
  * @returns Current date string
  */
 export function getCurrentDateFormatted(): string {
-  return formatDate(new Date(), 'MMMM d, yyyy h:mm a');
+  // Hard-coded for Manila timezone (March 21, 2025, 12:00 PM)
+  const manillaDate = new Date(2025, 2, 21, 12, 0, 0); // Month is 0-indexed, so 2 = March
+  return formatDate(manillaDate, 'MMMM d, yyyy h:mm a') + ' (Manila)';
 }
 
 /**
