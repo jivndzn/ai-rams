@@ -1,3 +1,4 @@
+
 import { Droplets, RefreshCw, Database, Waves, Info, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -33,7 +34,7 @@ const WaterQualityCard = ({
   const turbidityRecommendation = getTurbidityRecommendation(qualityValue);
   const isMobile = useIsMobile();
   
-  const isConcerning = qualityValue > 80;
+  const isConcerning = qualityValue > 70; // Adjusted to align with quality levels
   
   const handleUpdateClick = () => {
     console.log("Update button clicked");

@@ -1,3 +1,4 @@
+
 // Types for our sensor data
 export interface SensorData {
   ph: number;
@@ -21,14 +22,17 @@ export function getWaterUseRecommendation(ph: number): string {
 // Function to get water quality description based on the Arduino's turbidity scale
 // In Arduino code: 0% = clear water, 100% = dirty water
 export function getQualityDescription(quality: number): string {
+  // Align quality description with turbidity levels for consistency
   if (quality >= 90) {
     return "Poor";
   } else if (quality >= 70) {
     return "Fair";
   } else if (quality >= 40) {
     return "Good";
-  } else {
+  } else if (quality >= 10) {
     return "Excellent";
+  } else {
+    return "Pristine";
   }
 }
 
@@ -47,8 +51,10 @@ export function getTurbidityDescription(quality: number): string {
     return "Cloudy";
   } else if (quality >= 40) {
     return "Slightly Cloudy";
-  } else {
+  } else if (quality >= 10) {
     return "Clear";
+  } else {
+    return "Crystal Clear";
   }
 }
 
@@ -86,23 +92,23 @@ export function getPhColor(ph: number): string {
 // Function to get recommendation based on Arduino's turbidity
 // In Arduino code: 0% = clear water, 100% = dirty water
 export function getTurbidityRecommendation(quality: number): string {
-  // Invert the scale to match Arduino's logic (0% = clear, 100% = dirty)
-  const invertedQuality = 100 - quality;
-  
-  if (invertedQuality >= 90) { // Very Dirty
+  // Ensure the recommendation matches the quality level
+  if (quality >= 90) { // Very Dirty
     return "Not suitable for any domestic or agricultural use";
-  } else if (invertedQuality >= 80) { // Dirty
+  } else if (quality >= 80) { // Dirty
     return "Not recommended for household use, limited agricultural applications";
-  } else if (invertedQuality >= 70) { // Slightly Dirty
+  } else if (quality >= 70) { // Slightly Dirty
     return "Requires significant treatment before any use";
-  } else if (invertedQuality >= 60) { // Very Cloudy
+  } else if (quality >= 60) { // Very Cloudy
     return "Suitable for watering non-edible plants, not for consumption";
-  } else if (invertedQuality >= 50) { // Cloudy
+  } else if (quality >= 50) { // Cloudy
     return "Suitable for irrigation and non-contact use";
-  } else if (invertedQuality >= 40) { // Slightly Cloudy
+  } else if (quality >= 40) { // Slightly Cloudy
     return "Safe for bathing and laundry, requires filtration for drinking";
-  } else { // Clear
+  } else if (quality >= 10) { // Clear
     return "Safe for drinking after basic treatment";
+  } else { // Crystal Clear
+    return "Safe for all domestic uses with minimal treatment";
   }
 }
 
