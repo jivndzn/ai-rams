@@ -50,10 +50,8 @@ export const useChatWithGemini = ({ sensorData, apiKey }: UseChatWithGeminiProps
   
   // Wrapper for sending messages with the current input
   const sendMessage = () => {
-    if (input) {
-      handleSendMessage(input);
-      setInput("");
-    }
+    handleSendMessage(input);
+    setInput("");
   };
 
   // Wrapper for key down events

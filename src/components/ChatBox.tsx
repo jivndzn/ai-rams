@@ -22,8 +22,7 @@ const ChatBox = ({ sensorData, apiKey, setApiKey }: ChatBoxProps) => {
     isLoading,
     handleAutoAnalysis,
     handleSendMessage,
-    handleKeyDown,
-    hasAutoAnalyzed
+    handleKeyDown
   } = useChatWithGemini({
     sensorData,
     apiKey
@@ -42,16 +41,6 @@ const ChatBox = ({ sensorData, apiKey, setApiKey }: ChatBoxProps) => {
       }
     }
   }, [sensorData.timestamp, apiKey]);
-
-  // Helper function to handle "update sensor" button click
-  const handleUpdateSensorMessage = () => {
-    setInput("Can you update the sensors please");
-    setTimeout(() => {
-      // The error was here - we were passing an argument to handleSendMessage
-      // but the function doesn't accept arguments in this context
-      handleSendMessage();
-    }, 100);
-  };
 
   return (
     <div className="flex flex-col h-full">
@@ -91,7 +80,6 @@ const ChatBox = ({ sensorData, apiKey, setApiKey }: ChatBoxProps) => {
         handleKeyDown={handleKeyDown}
         isLoading={isLoading}
         apiKey={apiKey}
-        onUpdateSensorsClick={handleUpdateSensorMessage}
       />
       
       {/* Auto-analysis button */}

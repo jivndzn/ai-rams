@@ -4,7 +4,6 @@ import { SensorReading } from "@/lib/supabase";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatTimeForChart } from "@/lib/datetime";
-import { isValidDate } from "@/lib/datetime";
 
 interface HistoricalChartProps {
   historicalData: SensorReading[];
@@ -13,19 +12,16 @@ interface HistoricalChartProps {
 
 const HistoricalChart = ({ historicalData, isLoading = false }: HistoricalChartProps) => {
   // Process data for the chart
-  const chartData = historicalData
-    .filter(reading => reading.created_at && isValidDate(reading.created_at)) // Only include valid dates
-    .map(reading => ({
-      time: formatTimeForChart(reading.created_at),
-      ph: reading.ph ?? reading.pH,  // Handle both ph and pH properties
-      temperature: reading.temperature,
-      quality: reading.quality,
-      created_at: reading.created_at
-    }))
-    .sort((a, b) => {
-      // Sort by timestamp (ascending) so chart reads left to right
-      return new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime();
-    });
+  const chartData = historicalData.map(reading => ({
+    time: formatTimeForChart(reading.created_at),
+    ph: reading.ph ?? reading.pH,  // Handle both ph and pH properties
+    temperature: reading.temperature,
+    quality: reading.quality,
+    created_at: reading.created_at
+  })).sort((a, b) => {
+    // Sort by timestamp (ascending) so chart reads left to right
+    return new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime();
+  });
 
   return (
     <Card>

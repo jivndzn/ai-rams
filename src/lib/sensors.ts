@@ -90,24 +90,24 @@ export function getPhColor(ph: number): string {
 }
 
 // Function to get recommendation based on Arduino's turbidity
-// Modified to ensure consistency with quality descriptions
+// In Arduino code: 0% = clear water, 100% = dirty water
 export function getTurbidityRecommendation(quality: number): string {
   // Ensure the recommendation matches the quality level
-  if (quality >= 90) { // Poor Quality / Very Dirty
+  if (quality >= 90) { // Very Dirty
     return "Not suitable for any domestic or agricultural use";
-  } else if (quality >= 80) { // Poor Quality / Dirty
+  } else if (quality >= 80) { // Dirty
     return "Not recommended for household use, limited agricultural applications";
-  } else if (quality >= 70) { // Fair Quality / Slightly Dirty
+  } else if (quality >= 70) { // Slightly Dirty
     return "Requires significant treatment before any use";
-  } else if (quality >= 60) { // Fair Quality / Very Cloudy
+  } else if (quality >= 60) { // Very Cloudy
     return "Suitable for watering non-edible plants, not for consumption";
-  } else if (quality >= 50) { // Fair Quality / Cloudy
+  } else if (quality >= 50) { // Cloudy
     return "Suitable for irrigation and non-contact use";
-  } else if (quality >= 40) { // Good Quality / Slightly Cloudy
+  } else if (quality >= 40) { // Slightly Cloudy
     return "Safe for bathing and laundry, requires filtration for drinking";
-  } else if (quality >= 10) { // Excellent Quality / Clear
+  } else if (quality >= 10) { // Clear
     return "Safe for drinking after basic treatment";
-  } else { // Pristine Quality / Crystal Clear
+  } else { // Crystal Clear
     return "Safe for all domestic uses with minimal treatment";
   }
 }
@@ -149,28 +149,4 @@ export function getHistoricalData(hours: number = 24): SensorData[] {
   }
   
   return data;
-}
-
-// Helper function to detect sensor update requests in user messages
-export function isSensorUpdateRequest(message: string): boolean {
-  const updatePatterns = [
-    /update.+sensor/i,
-    /refresh.+sensor/i,
-    /sensor.+update/i,
-    /sensor.+refresh/i,
-    /new.+reading/i,
-    /fetch.+reading/i,
-    /get.+reading/i,
-    /latest.+data/i,
-    /new.+data/i
-  ];
-  
-  return updatePatterns.some(pattern => pattern.test(message));
-}
-
-// Generate a standardized response for sensor update requests
-export function getSensorUpdateResponse(): string {
-  return `While I can analyze and provide insights based on sensor readings, I don't have the ability to directly update the sensors themselves. The sensor readings are automatically updated by the physical sensors in your AI-RAMS.
-
-However, I can definitely use the most recent readings to give you an updated analysis! Do you have new sensor data you'd like me to use?`;
 }
