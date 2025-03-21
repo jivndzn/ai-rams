@@ -1,3 +1,4 @@
+
 // Configuration for Gemini API requests
 export const GEMINI_API_ENDPOINT = 'https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent';
 
@@ -52,6 +53,3 @@ Guidelines:
 4. When users ask about time-related information, reference the timestamp of the most recent readings.
 
 5. Keep answers focused, helpful, and relevant to the AI-RAMS system and water quality management.`;
-
-
-export const DEFAULT_GEMINI_API_KEY = 'AIzaSyC5dwlH4O78FmRUEJoP9K1KzJGlzoZHgEc';
