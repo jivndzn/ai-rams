@@ -5,7 +5,7 @@ import { chatWithGemini } from '@/lib/gemini';
 import { formatApiResponse } from '@/lib/gemini/formatting';
 import { isAllowedQuery } from '@/lib/gemini/validation';
 import { GeminiMessage } from '@/lib/gemini/types';
-import { SensorData } from '@/lib/sensors';
+import { SensorData, isSensorUpdateRequest, getSensorUpdateResponse } from '@/lib/sensors';
 
 interface UseUserMessagesProps {
   sensorData: SensorData;
@@ -42,6 +42,18 @@ export const useUserMessages = ({
     
     try {
       const updatedMessages = [...messages, userMessage];
+      
+      // Check if the message is requesting sensor updates
+      if (isSensorUpdateRequest(input)) {
+        const sensorUpdateMessage: GeminiMessage = {
+          role: "model",
+          parts: [{ text: getSensorUpdateResponse() }],
+        };
+        
+        setMessages((prev) => [...prev, sensorUpdateMessage]);
+        setIsLoading(false);
+        return;
+      }
       
       if (!isAllowedQuery(input)) {
         const offTopicMessage: GeminiMessage = {

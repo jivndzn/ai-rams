@@ -22,7 +22,8 @@ const ChatBox = ({ sensorData, apiKey, setApiKey }: ChatBoxProps) => {
     isLoading,
     handleAutoAnalysis,
     handleSendMessage,
-    handleKeyDown
+    handleKeyDown,
+    hasAutoAnalyzed
   } = useChatWithGemini({
     sensorData,
     apiKey
@@ -41,6 +42,14 @@ const ChatBox = ({ sensorData, apiKey, setApiKey }: ChatBoxProps) => {
       }
     }
   }, [sensorData.timestamp, apiKey]);
+
+  // Helper function to handle "update sensor" button click
+  const handleUpdateSensorMessage = () => {
+    setInput("Can you update the sensors please");
+    setTimeout(() => {
+      handleSendMessage("Can you update the sensors please");
+    }, 100);
+  };
 
   return (
     <div className="flex flex-col h-full">
@@ -80,6 +89,7 @@ const ChatBox = ({ sensorData, apiKey, setApiKey }: ChatBoxProps) => {
         handleKeyDown={handleKeyDown}
         isLoading={isLoading}
         apiKey={apiKey}
+        onUpdateSensorsClick={handleUpdateSensorMessage}
       />
       
       {/* Auto-analysis button */}

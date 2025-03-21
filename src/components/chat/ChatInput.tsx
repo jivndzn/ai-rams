@@ -1,5 +1,5 @@
 
-import { Send } from "lucide-react";
+import { Send, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -10,6 +10,7 @@ interface ChatInputProps {
   handleKeyDown: (e: React.KeyboardEvent) => void;
   isLoading: boolean;
   apiKey: string;
+  onUpdateSensorsClick?: () => void;
 }
 
 const ChatInput = ({ 
@@ -17,10 +18,26 @@ const ChatInput = ({
   setInput, 
   handleSendMessage, 
   handleKeyDown,
-  isLoading
+  isLoading,
+  onUpdateSensorsClick
 }: ChatInputProps) => {
   return (
     <div className="relative mt-auto">
+      <div className="flex items-center space-x-2 mb-2">
+        {onUpdateSensorsClick && (
+          <Button 
+            variant="secondary"
+            size="sm"
+            className="text-xs bg-cyan-500 hover:bg-cyan-600 text-white"
+            onClick={onUpdateSensorsClick}
+            disabled={isLoading}
+          >
+            <RefreshCw className="h-3 w-3 mr-1" />
+            Update Sensors
+          </Button>
+        )}
+      </div>
+      
       <Textarea
         value={input}
         onChange={(e) => setInput(e.target.value)}
