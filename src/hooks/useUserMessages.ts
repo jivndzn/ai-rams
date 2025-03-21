@@ -46,7 +46,7 @@ export const useUserMessages = ({
       if (!isAllowedQuery(input)) {
         const offTopicMessage: GeminiMessage = {
           role: "model",
-          parts: [{ text: "I'm your friendly water quality assistant. I'd be happy to help with questions about your rainwater data, measurements, or historical trends. What would you like to know about your water readings?" }],
+          parts: [{ text: "I'm sorry, but I'm specialized in water quality analysis and the AI-RAMS system. I can help with questions about your water readings, system functionality, or weather predictions related to water collection. What would you like to know about your rainwater data?" }],
         };
         
         setMessages((prev) => [...prev, offTopicMessage]);

@@ -35,6 +35,12 @@ export const isAllowedQuery = (query: string): boolean => {
     'recent', 'current', 'past', 'previous', 'compare', 'comparison'
   ];
   
+  const systemKeywords = [
+    'system', 'ai-rams', 'rams', 'how it works', 'function', 'software', 'hardware',
+    'time', 'date', 'updated', 'last update', 'refresh', 'version', 'software',
+    'weather', 'predict', 'forecast', 'rain', 'precipitation', 'humidity'
+  ];
+  
   const queryLower = query.toLowerCase();
   
   const isBasicConversation = basicConversation.some(phrase => 
@@ -49,5 +55,9 @@ export const isAllowedQuery = (query: string): boolean => {
     queryLower.includes(keyword)
   );
   
-  return isBasicConversation || isWaterRelated || isDataRelated;
+  const isSystemRelated = systemKeywords.some(keyword => 
+    queryLower.includes(keyword)
+  );
+  
+  return isBasicConversation || isWaterRelated || isDataRelated || isSystemRelated;
 };

@@ -1,6 +1,7 @@
 
-import { Droplet } from "lucide-react";
+import { Droplet, AlertTriangle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/providers/ThemeProvider";
 
@@ -31,11 +32,14 @@ const PhCard = ({ phValue, avgPh }: PhCardProps) => {
       </CardHeader>
       <CardContent>
         {isUncalibrated ? (
-          <div className="p-4 mb-3 bg-amber-50 text-amber-700 rounded-md">
-            <p className="text-sm font-medium">
-              Sensor Calibration Error: pH reading of {safeValue.toFixed(2)} is outside the normal range (0-14).
-            </p>
-          </div>
+          <Alert variant="destructive" className="mb-3">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Calibration Error</AlertTitle>
+            <AlertDescription>
+              pH reading of {safeValue.toFixed(2)} is outside the normal range (0-14).
+              Please check sensor calibration.
+            </AlertDescription>
+          </Alert>
         ) : (
           <div className="mt-2 mb-6">
             <div className="relative w-full h-10 bg-gray-200 rounded-full overflow-hidden">
