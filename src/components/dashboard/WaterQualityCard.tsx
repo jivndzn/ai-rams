@@ -74,7 +74,20 @@ const WaterQualityCard = ({
               )}
               
               {qualityTrend && (
-                <Badge variant={qualityTrend === 'rising' ? 'destructive' : qualityTrend === 'falling' ? 'success' : 'secondary'} className="ml-auto sm:ml-0">
+                <Badge 
+                  variant={
+                    qualityTrend === 'rising' 
+                      ? 'destructive' 
+                      : qualityTrend === 'falling' 
+                        ? 'outline' // Changed from 'success' to 'outline'
+                        : 'secondary'
+                  } 
+                  className={`ml-auto sm:ml-0 ${
+                    qualityTrend === 'falling' 
+                      ? (isDarkMode ? 'border-green-800 bg-green-950/50 text-green-400' : 'border-green-300 bg-green-50 text-green-700') 
+                      : ''
+                  }`}
+                >
                   {qualityTrend === 'rising' ? 'Worsening' : qualityTrend === 'falling' ? 'Improving' : 'Stable'}
                 </Badge>
               )}
