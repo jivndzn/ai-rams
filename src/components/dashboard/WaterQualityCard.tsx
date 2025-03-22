@@ -12,21 +12,19 @@ import { formatTimestamp } from "@/lib/datetime";
 interface WaterQualityCardProps {
   qualityValue: number;
   recommendation: string;
-  onUpdateReadings: () => void;
   dataSource?: string;
-  onRefreshHistory?: () => void;
   lastUpdated: string;
   avgQuality?: number;
+  qualityTrend?: 'rising' | 'falling' | 'stable';
 }
 
 const WaterQualityCard = ({ 
   qualityValue, 
   recommendation, 
-  onUpdateReadings,
   dataSource = "Simulation",
-  onRefreshHistory,
   lastUpdated,
-  avgQuality
+  avgQuality,
+  qualityTrend
 }: WaterQualityCardProps) => {
   const qualityDescription = getQualityDescription(qualityValue);
   const turbidityDescription = getTurbidityDescription(qualityValue);
@@ -72,6 +70,12 @@ const WaterQualityCard = ({
                 <Badge variant="destructive" className="ml-auto sm:ml-0">
                   <AlertTriangle className="h-3 w-3 mr-1" />
                   Concerning
+                </Badge>
+              )}
+              
+              {qualityTrend && (
+                <Badge variant={qualityTrend === 'rising' ? 'destructive' : qualityTrend === 'falling' ? 'success' : 'secondary'} className="ml-auto sm:ml-0">
+                  {qualityTrend === 'rising' ? 'Worsening' : qualityTrend === 'falling' ? 'Improving' : 'Stable'}
                 </Badge>
               )}
             </div>

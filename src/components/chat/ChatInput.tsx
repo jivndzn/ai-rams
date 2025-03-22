@@ -10,7 +10,6 @@ interface ChatInputProps {
   handleKeyDown: (e: React.KeyboardEvent) => void;
   isLoading: boolean;
   apiKey?: string;
-  onUpdateSensors?: () => void;
 }
 
 const ChatInput = ({ 

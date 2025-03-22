@@ -71,18 +71,98 @@ export function useSensorReadings(limit: number = 100) {
     console.log("useSensorReadings hook mounted, loading data...");
     loadHistoricalData();
     
-    // Optional: Set up a polling mechanism to refresh data
-    const interval = setInterval(() => {
-      loadHistoricalData();
-    }, 5 * 60 * 1000); // Refresh every 5 minutes
+    // Set up real-time subscription for sensor_readings table
+    const channel = supabase
+      .channel('public:sensor_readings')
+      .on('postgres_changes', 
+        { 
+          event: 'INSERT', 
+          schema: 'public', 
+          table: 'sensor_readings' 
+        }, 
+        (payload) => {
+          console.log('New sensor reading received:', payload);
+          const newReading = payload.new as SensorReading;
+          
+          // Process new reading to standardize pH field
+          const processedReading = {
+            id: newReading.id,
+            created_at: newReading.created_at,
+            ph: newReading.pH, // Use uppercase pH from database
+            pH: newReading.pH, // Keep the original property too
+            temperature: newReading.temperature,
+            quality: newReading.quality,
+            data_source: newReading.data_source || "unknown"
+          };
+          
+          // Add new reading to the top of the list (most recent first)
+          setReadings(prevReadings => 
+            [processedReading, ...prevReadings].slice(0, limit)
+          );
+          
+          toast.info("New sensor reading", {
+            description: `New reading from ${processedReading.data_source}`
+          });
+        }
+      )
+      .subscribe();
     
-    return () => clearInterval(interval);
-  }, [loadHistoricalData]);
+    return () => {
+      // Clean up subscription on unmount
+      supabase.removeChannel(channel);
+    };
+  }, [loadHistoricalData, limit]);
+
+  // Categorize readings by source or time period
+  const getDatasetsBySource = useCallback(() => {
+    const datasets: Record<string, SensorReading[]> = {};
+    
+    readings.forEach(reading => {
+      const source = reading.data_source || 'unknown';
+      if (!datasets[source]) {
+        datasets[source] = [];
+      }
+      datasets[source].push(reading);
+    });
+    
+    return datasets;
+  }, [readings]);
+  
+  // Get datasets by time range (today, last week, etc.)
+  const getDatasetsByTimeRange = useCallback(() => {
+    const now = new Date();
+    const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    
+    const today: SensorReading[] = [];
+    const lastWeek: SensorReading[] = [];
+    const older: SensorReading[] = [];
+    
+    readings.forEach(reading => {
+      if (!reading.created_at) {
+        return;
+      }
+      
+      const readingDate = new Date(reading.created_at);
+      
+      if (readingDate >= oneDayAgo) {
+        today.push(reading);
+      } else if (readingDate >= oneWeekAgo) {
+        lastWeek.push(reading);
+      } else {
+        older.push(reading);
+      }
+    });
+    
+    return { today, lastWeek, older };
+  }, [readings]);
 
   return {
     readings,
     isLoading,
     error,
     loadHistoricalData,
+    getDatasetsBySource,
+    getDatasetsByTimeRange
   };
 }

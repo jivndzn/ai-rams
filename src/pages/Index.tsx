@@ -1,9 +1,10 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { SensorData, getWaterUseRecommendation } from "@/lib/sensors";
 import { toast } from "sonner";
 import { getGeminiApiKey } from "@/lib/env";
-import { getLatestSensorReadings, getAverageSensorReadings, SensorReading } from "@/lib/supabase";
+import { useSensorReadings } from "@/hooks/useSensorReadings";
+import { getAverageSensorReadings } from "@/lib/supabase";
 import { formatTimestamp, getCurrentDateFormatted } from "@/lib/datetime";
 
 // Components
@@ -18,84 +19,91 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 
 const Index = () => {
-  const [sensorData, setSensorData] = useState<SensorData>({
-    ph: 7.0,
-    temperature: 22.0,
-    quality: 75,
-    timestamp: Date.now(),
-    data_source: "loading"
-  });
-  const [historicalData, setHistoricalData] = useState<SensorReading[]>([]);
   const [apiKey, setApiKey] = useState<string>(getGeminiApiKey());
   const [recommendation, setRecommendation] = useState<string>("");
-  const [lastUpdateSource, setLastUpdateSource] = useState<string>("loading");
-  const [isLoading, setIsLoading] = useState<boolean>(true);
   const navigate = useNavigate();
   
-  useEffect(() => {
-    // Load historical data on component mount
-    loadHistoricalData();
+  // Use our enhanced hook with real-time updates
+  const { 
+    readings: historicalData, 
+    isLoading,
+    getDatasetsBySource,
+    getDatasetsByTimeRange
+  } = useSensorReadings(24);
+  
+  // Process datasets
+  const datasetsBySource = useMemo(() => getDatasetsBySource(), [getDatasetsBySource]);
+  const datasetsByTime = useMemo(() => getDatasetsByTimeRange(), [getDatasetsByTimeRange]);
+  
+  // Get the most recent reading for current display
+  const mostRecentReading = useMemo(() => {
+    return historicalData.length > 0 ? historicalData[0] : null;
+  }, [historicalData]);
+  
+  // Create current sensor data from most recent reading or use default values
+  const sensorData = useMemo<SensorData>(() => {
+    if (mostRecentReading) {
+      return {
+        ph: mostRecentReading.ph ?? mostRecentReading.pH ?? 7.0,
+        temperature: mostRecentReading.temperature ?? 22.0,
+        quality: mostRecentReading.quality ?? 75,
+        timestamp: mostRecentReading.created_at 
+          ? new Date(mostRecentReading.created_at).getTime() 
+          : Date.now(),
+        data_source: mostRecentReading.data_source ?? "unknown"
+      };
+    }
     
-    // Set up refresh interval (every 5 minutes)
-    const interval = setInterval(() => {
-      loadHistoricalData();
-    }, 300000);
+    // Default values if no data is available
+    return {
+      ph: 7.0,
+      temperature: 22.0,
+      quality: 75,
+      timestamp: Date.now(),
+      data_source: "simulated"
+    };
+  }, [mostRecentReading]);
+  
+  // Get average values for display
+  const [averages, setAverages] = useState({ avgPh: 0, avgTemp: 0, avgQuality: 0 });
+  
+  // Calculate quality trend
+  const qualityTrend = useMemo(() => {
+    if (historicalData.length < 3) return undefined;
     
-    return () => clearInterval(interval);
-  }, []);
+    // Get last 3 quality readings
+    const recentReadings = historicalData
+      .slice(0, 3)
+      .map(r => r.quality ?? 0)
+      .filter(q => q > 0);
+    
+    if (recentReadings.length < 2) return undefined;
+    
+    // Check if quality is consistently increasing or decreasing
+    let rising = true;
+    let falling = true;
+    
+    for (let i = 0; i < recentReadings.length - 1; i++) {
+      if (recentReadings[i] <= recentReadings[i+1]) falling = false;
+      if (recentReadings[i] >= recentReadings[i+1]) rising = false;
+    }
+    
+    // Calculate the average change
+    const totalChange = recentReadings[0] - recentReadings[recentReadings.length - 1];
+    
+    // Only show trend if the change is significant (more than 5%)
+    if (Math.abs(totalChange) < 5) return 'stable';
+    
+    if (rising) return 'rising';
+    if (falling) return 'falling';
+    
+    return 'stable';
+  }, [historicalData]);
   
   useEffect(() => {
     const recommendation = getWaterUseRecommendation(sensorData.ph);
     setRecommendation(recommendation);
   }, [sensorData]);
-  
-  const loadHistoricalData = async () => {
-    try {
-      setIsLoading(true);
-      const readings = await getLatestSensorReadings(24);
-      
-      if (readings.length > 0) {
-        // Convert Supabase data to SensorData format
-        const historicalReadings: SensorData[] = readings.map(reading => ({
-          ph: reading.ph ?? reading.pH ?? 7.0, // Fall back to pH if ph is not available
-          temperature: reading.temperature ?? 0,
-          quality: reading.quality ?? 0,
-          timestamp: reading.created_at ? new Date(reading.created_at).getTime() : Date.now(),
-          data_source: reading.data_source ?? "unknown"
-        }));
-        
-        // Store the original readings in historicalData for the chart
-        setHistoricalData(readings);
-        
-        // Update current sensor data with the most recent reading
-        const mostRecent = historicalReadings[0];
-        if (mostRecent) {
-          setSensorData(mostRecent);
-          setLastUpdateSource(mostRecent.data_source);
-        }
-        
-        toast.success("Loaded sensor data", {
-          description: `Loaded ${readings.length} readings from database`
-        });
-      } else {
-        toast.info("No data found", {
-          description: "Connect your Arduino to start collecting data"
-        });
-      }
-    } catch (error) {
-      console.error("Failed to load data:", error);
-      toast.error("Failed to load data", {
-        description: error instanceof Error ? error.message : "Unknown error"
-      });
-    } finally {
-      setIsLoading(false);
-    }
-    
-    return historicalData.length > 0;
-  };
-  
-  // Get average values for display
-  const [averages, setAverages] = useState({ avgPh: 0, avgTemp: 0, avgQuality: 0 });
   
   useEffect(() => {
     const fetchAverages = async () => {
@@ -108,6 +116,11 @@ const Index = () => {
     };
     
     fetchAverages();
+    
+    // Refresh averages periodically
+    const intervalId = setInterval(fetchAverages, 60000); // Refresh every minute
+    
+    return () => clearInterval(intervalId);
   }, [historicalData]);
   
   const handleViewHistory = () => {
@@ -144,16 +157,17 @@ const Index = () => {
             <WaterQualityCard 
               qualityValue={sensorData.quality}
               recommendation={recommendation}
-              onUpdateReadings={loadHistoricalData}
-              dataSource={lastUpdateSource}
-              onRefreshHistory={loadHistoricalData}
+              dataSource={sensorData.data_source}
               lastUpdated={sensorData.timestamp.toString()}
               avgQuality={averages.avgQuality}
+              qualityTrend={qualityTrend}
             />
             
             <HistoricalChart 
               historicalData={historicalData}
               isLoading={isLoading} 
+              datasetsBySource={datasetsBySource}
+              datasetsByTime={datasetsByTime}
             />
           </div>
           

@@ -5,32 +5,100 @@ import { SensorReading } from "@/lib/supabase";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatTimeForChart, isValidDate } from "@/lib/datetime";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface HistoricalChartProps {
   historicalData: SensorReading[];
   isLoading?: boolean;
+  datasetsBySource?: Record<string, SensorReading[]>;
+  datasetsByTime?: {
+    today: SensorReading[];
+    lastWeek: SensorReading[];
+    older: SensorReading[];
+  };
 }
 
-const HistoricalChart = ({ historicalData, isLoading = false }: HistoricalChartProps) => {
-  // Process data for the chart, filtering out invalid dates
-  const chartData = historicalData
-    .filter(reading => reading.created_at && isValidDate(reading.created_at))
-    .map(reading => ({
-      time: formatTimeForChart(reading.created_at),
-      ph: reading.ph ?? reading.pH,  // Handle both ph and pH properties
-      temperature: reading.temperature,
-      quality: reading.quality,
-      created_at: reading.created_at
-    }))
-    .sort((a, b) => {
-      // Sort by timestamp (ascending) so chart reads left to right
-      return new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime();
-    });
+const HistoricalChart = ({ 
+  historicalData, 
+  isLoading = false,
+  datasetsBySource,
+  datasetsByTime
+}: HistoricalChartProps) => {
+  const [timeRange, setTimeRange] = useState<'today' | 'week' | 'all'>('all');
+  const [dataSource, setDataSource] = useState<string>('all');
+  
+  // Process data for the chart based on selected filters
+  const processChartData = () => {
+    let filteredData = [...historicalData];
+    
+    // Filter by time range if datasetsByTime is available
+    if (datasetsByTime && timeRange !== 'all') {
+      if (timeRange === 'today') {
+        filteredData = datasetsByTime.today;
+      } else if (timeRange === 'week') {
+        filteredData = [...datasetsByTime.today, ...datasetsByTime.lastWeek];
+      }
+    }
+    
+    // Filter by data source if datasetsBySource is available and not 'all'
+    if (datasetsBySource && dataSource !== 'all') {
+      filteredData = datasetsBySource[dataSource] || [];
+    }
+    
+    return filteredData
+      .filter(reading => reading.created_at && isValidDate(reading.created_at))
+      .map(reading => ({
+        time: formatTimeForChart(reading.created_at),
+        ph: reading.ph ?? reading.pH,  // Handle both ph and pH properties
+        temperature: reading.temperature,
+        quality: reading.quality,
+        created_at: reading.created_at,
+        data_source: reading.data_source
+      }))
+      .sort((a, b) => {
+        // Sort by timestamp (ascending) so chart reads left to right
+        return new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime();
+      });
+  };
+  
+  const chartData = processChartData();
+  
+  // Generate sources for filter
+  const availableSources = datasetsBySource 
+    ? Object.keys(datasetsBySource)
+    : [];
 
   return (
     <Card>
       <CardHeader className="pb-2">
-        <CardTitle className="text-lg">Historical Readings</CardTitle>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+          <CardTitle className="text-lg">Historical Readings</CardTitle>
+          
+          <div className="flex flex-wrap gap-2">
+            {datasetsByTime && (
+              <Tabs defaultValue={timeRange} onValueChange={(value) => setTimeRange(value as 'today' | 'week' | 'all')}>
+                <TabsList className="h-8">
+                  <TabsTrigger value="today" className="text-xs px-2 h-7">Today</TabsTrigger>
+                  <TabsTrigger value="week" className="text-xs px-2 h-7">Week</TabsTrigger>
+                  <TabsTrigger value="all" className="text-xs px-2 h-7">All Time</TabsTrigger>
+                </TabsList>
+              </Tabs>
+            )}
+            
+            {availableSources.length > 1 && (
+              <Tabs defaultValue={dataSource} onValueChange={setDataSource}>
+                <TabsList className="h-8">
+                  <TabsTrigger value="all" className="text-xs px-2 h-7">All Sources</TabsTrigger>
+                  {availableSources.map(source => (
+                    <TabsTrigger key={source} value={source} className="text-xs px-2 h-7">
+                      {source.charAt(0).toUpperCase() + source.slice(1)}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+              </Tabs>
+            )}
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
         {isLoading ? (
@@ -72,7 +140,7 @@ const HistoricalChart = ({ historicalData, isLoading = false }: HistoricalChartP
                   />
                   <Tooltip 
                     labelFormatter={(label) => `Time: ${label}`}
-                    formatter={(value, name) => {
+                    formatter={(value, name, props) => {
                       if (name === 'quality') return [`${typeof value === 'number' ? value.toFixed(0) : value}%`, 'Quality'];
                       if (name === 'ph') return [`${typeof value === 'number' ? value.toFixed(1) : value}`, 'pH'];
                       if (name === 'temperature') return [`${typeof value === 'number' ? value.toFixed(1) : value}°C`, 'Temperature'];
