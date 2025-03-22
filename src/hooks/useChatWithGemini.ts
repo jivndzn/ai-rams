@@ -66,6 +66,7 @@ export const useChatWithGemini = ({ sensorData, apiKey }: UseChatWithGeminiProps
     input,
     setInput,
     messages,
+    setMessages, // Exposing setMessages for external use
     isLoading,
     handleAutoAnalysis,
     handleSendMessage: sendMessage,
