@@ -5,6 +5,7 @@ import { useChatWithGemini } from "@/hooks/useChatWithGemini";
 import MessageList from "./chat/MessageList";
 import ChatInput from "./chat/ChatInput";
 import AnalysisButton from "./chat/AnalysisButton";
+import ConversationSelector from "./chat/ConversationSelector";
 import { supabase } from "@/integrations/supabase/client";
 import { GeminiMessage } from "@/lib/gemini/types";
 import { toast } from "sonner";
@@ -19,9 +20,9 @@ interface ChatBoxProps {
 
 const ChatBox = ({ sensorData, apiKey, setApiKey }: ChatBoxProps) => {
   const [lastSensorTimestamp, setLastSensorTimestamp] = useState(sensorData.timestamp);
-  const [conversations, setConversations] = useState<{id: string, title: string}[]>([]);
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const {
     input,
@@ -37,36 +38,35 @@ const ChatBox = ({ sensorData, apiKey, setApiKey }: ChatBoxProps) => {
     apiKey
   });
   
-  // Fetch existing conversations on load
+  // Initialize or fetch existing conversation on load
   useEffect(() => {
-    const fetchConversations = async () => {
+    const initializeConversation = async () => {
       if (!apiKey) return;
       
       try {
+        // Check for existing conversations
         const { data, error } = await supabase
           .from('chat_conversations')
           .select('id, title')
-          .order('created_at', { ascending: false });
+          .order('created_at', { ascending: false })
+          .limit(1);
           
         if (error) throw error;
         
         if (data && data.length > 0) {
-          setConversations(data);
-          // Set the most recent conversation as current if none is selected
-          if (!currentConversationId) {
-            setCurrentConversationId(data[0].id);
-            await loadConversationMessages(data[0].id);
-          }
-        } else {
-          // Create a new conversation if none exist
+          // Load the most recent conversation
+          setCurrentConversationId(data[0].id);
+          await loadConversationMessages(data[0].id);
+        } else if (messages.length > 0) {
+          // If we have messages but no saved conversation, create one
           await createNewConversation();
         }
       } catch (error) {
-        console.error("Error fetching conversations:", error);
+        console.error("Error initializing conversation:", error);
       }
     };
     
-    fetchConversations();
+    initializeConversation();
   }, [apiKey]);
   
   // Load messages when conversation changes
@@ -118,11 +118,9 @@ const ChatBox = ({ sensorData, apiKey, setApiKey }: ChatBoxProps) => {
       if (error) throw error;
       
       if (data && data.length > 0) {
-        const newConversation = { id: data[0].id, title: data[0].title };
-        setConversations(prev => [newConversation, ...prev]);
-        setCurrentConversationId(newConversation.id);
-        setMessages([]);
         toast.success("New conversation created");
+        setCurrentConversationId(data[0].id);
+        setMessages([]);
       }
     } catch (error) {
       console.error("Error creating conversation:", error);
@@ -137,7 +135,7 @@ const ChatBox = ({ sensorData, apiKey, setApiKey }: ChatBoxProps) => {
     setIsSaving(true);
     
     try {
-      // First delete any existing messages for this conversation to avoid duplicates
+      // First delete any existing messages for this conversation
       await supabase
         .from('chat_messages')
         .delete()
@@ -156,7 +154,7 @@ const ChatBox = ({ sensorData, apiKey, setApiKey }: ChatBoxProps) => {
         
       if (error) throw error;
       
-      toast.success("Conversation saved");
+      console.log("Conversation saved successfully");
     } catch (error) {
       console.error("Error saving messages:", error);
       toast.error("Failed to save conversation");
@@ -165,7 +163,44 @@ const ChatBox = ({ sensorData, apiKey, setApiKey }: ChatBoxProps) => {
     }
   };
   
-  // Trigger analysis when sensor data is updated (every 15 minutes)
+  // Handle selecting a conversation from the history
+  const handleSelectConversation = async (conversationId: string) => {
+    if (currentConversationId === conversationId) return;
+    
+    // If we have unsaved changes, save them first
+    if (currentConversationId && messages.length > 0) {
+      await saveMessages();
+    }
+    
+    setCurrentConversationId(conversationId);
+    await loadConversationMessages(conversationId);
+  };
+  
+  // Auto-save when messages change
+  useEffect(() => {
+    if (messages.length > 0 && currentConversationId) {
+      // Clear any existing timeout
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+      
+      // Set a new timeout to save messages
+      saveTimeoutRef.current = setTimeout(() => {
+        saveMessages();
+      }, 2000); // Auto-save 2 seconds after last message change
+    } else if (messages.length > 0 && !currentConversationId) {
+      // If we have messages but no conversation, create one
+      createNewConversation();
+    }
+    
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, [messages, currentConversationId]);
+  
+  // Trigger analysis when sensor data is updated
   useEffect(() => {
     // Only trigger if timestamp has changed and we have data
     if (sensorData.timestamp !== lastSensorTimestamp && apiKey) {
@@ -178,25 +213,11 @@ const ChatBox = ({ sensorData, apiKey, setApiKey }: ChatBoxProps) => {
       }
     }
   }, [sensorData.timestamp, apiKey]);
-  
-  // Auto-save messages when they change
-  useEffect(() => {
-    if (messages.length > 0 && currentConversationId) {
-      const saveTimeout = setTimeout(() => {
-        saveMessages();
-      }, 3000); // Auto-save 3 seconds after last message change
-      
-      return () => clearTimeout(saveTimeout);
-    }
-  }, [messages, currentConversationId]);
 
   return (
     <div className="flex flex-col h-full">
       {/* Conversation controls */}
       <div className="flex items-center justify-between px-1 py-2 border-b">
-        <div className="flex-1 overflow-hidden text-ellipsis">
-          {conversations.find(c => c.id === currentConversationId)?.title || "New Conversation"}
-        </div>
         <div className="flex space-x-2">
           <Button 
             variant="outline" 
@@ -207,17 +228,21 @@ const ChatBox = ({ sensorData, apiKey, setApiKey }: ChatBoxProps) => {
             <PlusCircle className="h-4 w-4 mr-2" />
             <span className="hidden sm:inline">New</span>
           </Button>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={saveMessages} 
-            disabled={isSaving || messages.length === 0}
-            title="Save Conversation"
-          >
-            <Save className="h-4 w-4 mr-2" />
-            <span className="hidden sm:inline">Save</span>
-          </Button>
+          <ConversationSelector 
+            onSelectConversation={handleSelectConversation}
+            currentConversationId={currentConversationId}
+          />
         </div>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={saveMessages} 
+          disabled={isSaving || messages.length === 0 || !currentConversationId}
+          title="Save Conversation"
+        >
+          <Save className="h-4 w-4 mr-2" />
+          <span className="hidden sm:inline">Save</span>
+        </Button>
       </div>
       
       {/* Chat messages */}
