@@ -5,7 +5,6 @@ import { SensorData } from "@/lib/sensors";
 import { validateApiKeyFormat } from "@/lib/env";
 import { useAutoAnalysis } from "./useAutoAnalysis";
 import { useUserMessages } from "./useUserMessages";
-import { supabase } from "@/integrations/supabase/client";
 
 interface UseChatWithGeminiProps {
   sensorData: SensorData;
@@ -17,7 +16,6 @@ export const useChatWithGemini = ({ sensorData, apiKey }: UseChatWithGeminiProps
   const [messages, setMessages] = useState<GeminiMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasAutoAnalyzed, setHasAutoAnalyzed] = useState(false);
-  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   // Initialize the auto analysis functionality
   const { handleAutoAnalysis, autoAnalysisTimeoutRef } = useAutoAnalysis({
@@ -46,9 +44,6 @@ export const useChatWithGemini = ({ sensorData, apiKey }: UseChatWithGeminiProps
     return () => {
       if (autoAnalysisTimeoutRef.current.timeout) {
         clearTimeout(autoAnalysisTimeoutRef.current.timeout);
-      }
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
       }
     };
   }, [apiKey, hasAutoAnalyzed]);
