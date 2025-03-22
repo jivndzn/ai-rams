@@ -41,6 +41,14 @@ export const useUserMessages = ({
     setIsLoading(true);
     
     try {
+      console.log("Sending message with current sensor data:", {
+        ph: sensorData.ph,
+        temperature: sensorData.temperature,
+        quality: sensorData.quality,
+        timestamp: sensorData.timestamp,
+        source: sensorData.data_source
+      });
+      
       const updatedMessages = [...messages, userMessage];
       
       if (!isAllowedQuery(input)) {

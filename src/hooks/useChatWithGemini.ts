@@ -16,6 +16,7 @@ export const useChatWithGemini = ({ sensorData, apiKey }: UseChatWithGeminiProps
   const [messages, setMessages] = useState<GeminiMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasAutoAnalyzed, setHasAutoAnalyzed] = useState(false);
+  const [lastProcessedDataTimestamp, setLastProcessedDataTimestamp] = useState<number | undefined>(undefined);
   
   // Initialize the auto analysis functionality
   const { handleAutoAnalysis, autoAnalysisTimeoutRef } = useAutoAnalysis({
@@ -39,6 +40,7 @@ export const useChatWithGemini = ({ sensorData, apiKey }: UseChatWithGeminiProps
   useEffect(() => {
     if (!hasAutoAnalyzed && apiKey && validateApiKeyFormat(apiKey)) {
       handleAutoAnalysis();
+      setLastProcessedDataTimestamp(sensorData.timestamp);
     }
     
     return () => {
@@ -47,6 +49,26 @@ export const useChatWithGemini = ({ sensorData, apiKey }: UseChatWithGeminiProps
       }
     };
   }, [apiKey, hasAutoAnalyzed]);
+  
+  // Monitor for changes in sensor data timestamp and trigger analysis
+  useEffect(() => {
+    if (!sensorData.timestamp || !apiKey || !validateApiKeyFormat(apiKey)) return;
+    
+    // Check if this is new data we haven't processed yet
+    if (lastProcessedDataTimestamp !== sensorData.timestamp) {
+      console.log("New sensor data detected, timestamp:", sensorData.timestamp);
+      console.log("Previous processed timestamp:", lastProcessedDataTimestamp);
+      
+      // Only run auto-analysis if we've already done the initial analysis
+      if (hasAutoAnalyzed && messages.length > 0) {
+        console.log("Triggering auto-analysis for new sensor data");
+        handleAutoAnalysis();
+      }
+      
+      // Update the last processed timestamp
+      setLastProcessedDataTimestamp(sensorData.timestamp);
+    }
+  }, [sensorData.timestamp, apiKey, hasAutoAnalyzed, messages.length]);
   
   // Wrapper for sending messages with the current input
   const sendMessage = () => {
@@ -71,6 +93,7 @@ export const useChatWithGemini = ({ sensorData, apiKey }: UseChatWithGeminiProps
     handleAutoAnalysis,
     handleSendMessage: sendMessage,
     handleKeyDown: onKeyDown,
-    hasAutoAnalyzed
+    hasAutoAnalyzed,
+    lastProcessedDataTimestamp
   };
 };

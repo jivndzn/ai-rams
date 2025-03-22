@@ -17,8 +17,6 @@ interface ChatBoxProps {
 }
 
 const ChatBox = ({ sensorData, apiKey, setApiKey }: ChatBoxProps) => {
-  const [lastSensorTimestamp, setLastSensorTimestamp] = useState(sensorData.timestamp);
-
   const {
     input,
     setInput,
@@ -27,7 +25,8 @@ const ChatBox = ({ sensorData, apiKey, setApiKey }: ChatBoxProps) => {
     isLoading,
     handleAutoAnalysis,
     handleSendMessage,
-    handleKeyDown
+    handleKeyDown,
+    lastProcessedDataTimestamp
   } = useChatWithGemini({
     sensorData,
     apiKey
@@ -46,6 +45,17 @@ const ChatBox = ({ sensorData, apiKey, setApiKey }: ChatBoxProps) => {
     messages,
     apiKey
   });
+
+  // Debug log for sensor data changes
+  useEffect(() => {
+    console.log("ChatBox received updated sensor data:", {
+      ph: sensorData.ph,
+      temperature: sensorData.temperature,
+      quality: sensorData.quality,
+      timestamp: sensorData.timestamp,
+      source: sensorData.data_source
+    });
+  }, [sensorData]);
 
   // Handle selecting a conversation from the history
   const handleSelectConversation = async (conversationId: string) => {
@@ -101,20 +111,6 @@ const ChatBox = ({ sensorData, apiKey, setApiKey }: ChatBoxProps) => {
       }
     };
   }, [messages, currentConversationId]);
-  
-  // Trigger analysis when sensor data is updated
-  useEffect(() => {
-    // Only trigger if timestamp has changed and we have data
-    if (sensorData.timestamp !== lastSensorTimestamp && apiKey) {
-      setLastSensorTimestamp(sensorData.timestamp);
-      // Only run auto-analysis if we already have messages (user has seen initial analysis)
-      if (messages.length > 0) {
-        setTimeout(() => {
-          handleAutoAnalysis();
-        }, 500); // Small delay to let UI render first
-      }
-    }
-  }, [sensorData.timestamp, apiKey]);
 
   return (
     <div className="flex flex-col h-full">
