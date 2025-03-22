@@ -1,7 +1,7 @@
 
 import { cn } from "@/lib/utils";
 import { getQualityColor, getQualityDescription, getTurbidityDescription } from "@/lib/sensors";
-import { Info } from "lucide-react";
+import { Info, HelpCircle } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useTheme } from "@/providers/ThemeProvider";
 
@@ -12,7 +12,8 @@ interface QualityGaugeProps {
 
 const QualityGauge = ({ value, className }: QualityGaugeProps) => {
   // Handle undefined or null values with a default
-  const safeValue = typeof value === 'number' ? value : 75;
+  const isDataMissing = value === undefined || value === null;
+  const safeValue = isDataMissing ? 75 : value;
   
   // Calculate the position (0-100 scale)
   // Since in the Arduino, 100% means dirty and 0% means clear,
@@ -27,6 +28,24 @@ const QualityGauge = ({ value, className }: QualityGaugeProps) => {
   // Get the current theme
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  
+  if (isDataMissing) {
+    return (
+      <div className="flex flex-col items-center justify-center h-24 w-full">
+        <div className={cn(
+          "water-quality-gauge relative w-full h-24 rounded-full bg-slate-300/30 dark:bg-slate-800/30 backdrop-blur-sm shadow-inner overflow-hidden border border-slate-300 dark:border-slate-700", 
+          className
+        )}>
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="flex flex-col items-center gap-2 text-center">
+              <HelpCircle className="h-8 w-8 text-slate-400" />
+              <span className="text-sm text-slate-500">No data</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
   
   return (
     <div className="flex flex-col items-center space-y-2 w-full">

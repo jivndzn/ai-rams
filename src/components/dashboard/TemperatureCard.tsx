@@ -1,11 +1,12 @@
 
-import { Thermometer } from "lucide-react";
+import { Thermometer, HelpCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/providers/ThemeProvider";
 
 interface TemperatureCardProps {
-  temperatureValue: number;
+  temperatureValue: number | undefined;
   avgTemp?: number;
 }
 
@@ -13,12 +14,15 @@ const TemperatureCard = ({ temperatureValue, avgTemp }: TemperatureCardProps) =>
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
   
-  // Check if the temperature is showing a calibration error
+  // Handle missing temperature data
+  const isDataMissing = temperatureValue === undefined || temperatureValue === null;
+  
+  // Check if the temperature is showing a calibration error (only if we have data)
   // -127°C is a common default value when the DS18B20 sensor is not properly connected
-  const isCalibrationError = temperatureValue === -127 || temperatureValue < -50 || temperatureValue > 125;
+  const isCalibrationError = !isDataMissing && (temperatureValue === -127 || temperatureValue < -50 || temperatureValue > 125);
   
   // Calculate marker position (as percentage for 0-40°C range)
-  const safeValue = isCalibrationError ? 22 : temperatureValue;
+  const safeValue = isDataMissing ? 22 : (isCalibrationError ? 22 : temperatureValue);
   const constrainedValue = Math.min(Math.max(safeValue, 0), 40);
   const position = (constrainedValue / 40) * 100;
   
@@ -39,8 +43,16 @@ const TemperatureCard = ({ temperatureValue, avgTemp }: TemperatureCardProps) =>
         </CardTitle>
       </CardHeader>
       <CardContent>
-        {isCalibrationError ? (
-          <div className="p-4 mb-3 bg-amber-50 text-amber-700 rounded-md">
+        {isDataMissing ? (
+          <Alert variant="default" className="mb-3 bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700">
+            <HelpCircle className="h-4 w-4" />
+            <AlertTitle>No Data Available</AlertTitle>
+            <AlertDescription>
+              No temperature readings have been received yet. Connect your sensors or add sample data.
+            </AlertDescription>
+          </Alert>
+        ) : isCalibrationError ? (
+          <div className="p-4 mb-3 bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400 rounded-md">
             <p className="text-sm font-medium">
               Sensor Error: Temperature reading of {temperatureValue}°C indicates a sensor connection issue.
             </p>
@@ -72,13 +84,15 @@ const TemperatureCard = ({ temperatureValue, avgTemp }: TemperatureCardProps) =>
             "text-sm border-b pb-2",
             isDarkMode ? "text-slate-300 border-slate-700" : "text-slate-600 border-slate-200"
           )}>
-            {isCalibrationError 
-              ? "Sensor needs attention" 
-              : temperatureValue < 15 
-                ? "Cool water temperature" 
-                : temperatureValue > 25 
-                  ? "Warm water temperature" 
-                  : "Moderate water temperature"}
+            {isDataMissing 
+              ? "Waiting for temperature data" 
+              : isCalibrationError 
+                ? "Sensor needs attention" 
+                : safeValue < 15 
+                  ? "Cool water temperature" 
+                  : safeValue > 25 
+                    ? "Warm water temperature" 
+                    : "Moderate water temperature"}
           </p>
           
           {avgTemp !== undefined && avgTemp > 0 && !isNaN(avgTemp) && (

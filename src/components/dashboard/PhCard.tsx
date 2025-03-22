@@ -1,5 +1,5 @@
 
-import { Droplet, AlertTriangle } from "lucide-react";
+import { Droplet, AlertTriangle, HelpCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
@@ -11,13 +11,17 @@ interface PhCardProps {
 }
 
 const PhCard = ({ phValue, avgPh }: PhCardProps) => {
-  // Use a safe value for display logic
-  const safeValue = typeof phValue === 'number' ? phValue : 7.0;
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
   
-  // Check if pH value is likely uncalibrated
-  const isUncalibrated = safeValue > 14 || safeValue < 0;
+  // Handle undefined phValue
+  const isDataMissing = phValue === undefined || phValue === null;
+  
+  // Check if pH value is likely uncalibrated (only if we have data)
+  const isUncalibrated = !isDataMissing && (phValue > 14 || phValue < 0);
+  
+  // Safe display value for UI
+  const safeValue = isDataMissing ? 7.0 : (typeof phValue === 'number' ? phValue : 7.0);
   
   // Calculate marker position (as percentage)
   const position = Math.min(Math.max(safeValue, 0), 14) / 14 * 100;
@@ -31,7 +35,15 @@ const PhCard = ({ phValue, avgPh }: PhCardProps) => {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        {isUncalibrated ? (
+        {isDataMissing ? (
+          <Alert variant="default" className="mb-3 bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700">
+            <HelpCircle className="h-4 w-4" />
+            <AlertTitle>No Data Available</AlertTitle>
+            <AlertDescription>
+              No pH readings have been received yet. Connect your sensors or add sample data.
+            </AlertDescription>
+          </Alert>
+        ) : isUncalibrated ? (
           <Alert variant="destructive" className="mb-3">
             <AlertTriangle className="h-4 w-4" />
             <AlertTitle>Calibration Error</AlertTitle>
@@ -73,16 +85,18 @@ const PhCard = ({ phValue, avgPh }: PhCardProps) => {
             "text-sm border-b pb-2",
             isDarkMode ? "text-slate-300 border-slate-700" : "text-slate-600 border-slate-200"
           )}>
-            {isUncalibrated 
-              ? "Sensor calibration needed" 
-              : safeValue < 7 
-                ? "Acidic water (pH < 7)" 
-                : safeValue > 7 
-                  ? "Alkaline water (pH > 7)" 
-                  : "Neutral water (pH = 7)"}
+            {isDataMissing 
+              ? "Waiting for pH data" 
+              : isUncalibrated 
+                ? "Sensor calibration needed" 
+                : safeValue < 7 
+                  ? "Acidic water (pH < 7)" 
+                  : safeValue > 7 
+                    ? "Alkaline water (pH > 7)" 
+                    : "Neutral water (pH = 7)"}
           </p>
           
-          {typeof avgPh === 'number' && (
+          {typeof avgPh === 'number' && avgPh > 0 && (
             <p className={cn(
               "text-sm pt-1",
               isDarkMode ? "text-slate-400" : "text-slate-500"
