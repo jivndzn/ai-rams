@@ -141,6 +141,26 @@ export const useConversationManager = ({ messages, apiKey }: UseConversationMana
     }
   };
 
+  // Rename a conversation
+  const renameConversation = async (conversationId: string, newTitle: string): Promise<boolean> => {
+    if (!conversationId || !newTitle.trim()) return false;
+    
+    try {
+      const { error } = await supabase
+        .from('chat_conversations')
+        .update({ title: newTitle })
+        .eq('id', conversationId);
+        
+      if (error) throw error;
+      
+      return true;
+    } catch (error) {
+      console.error("Error renaming conversation:", error);
+      toast.error("Failed to rename conversation");
+      return false;
+    }
+  };
+
   return {
     currentConversationId,
     setCurrentConversationId,
@@ -148,6 +168,7 @@ export const useConversationManager = ({ messages, apiKey }: UseConversationMana
     saveTimeoutRef,
     loadConversationMessages,
     createNewConversation,
-    saveMessages
+    saveMessages,
+    renameConversation
   };
 };
