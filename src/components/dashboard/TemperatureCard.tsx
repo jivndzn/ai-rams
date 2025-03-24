@@ -4,13 +4,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/providers/ThemeProvider";
+import { formatTimestamp } from "@/lib/datetime";
 
 interface TemperatureCardProps {
   temperatureValue: number | undefined;
   avgTemp?: number;
+  timestamp?: string | number | Date;
 }
 
-const TemperatureCard = ({ temperatureValue, avgTemp }: TemperatureCardProps) => {
+const TemperatureCard = ({ temperatureValue, avgTemp, timestamp }: TemperatureCardProps) => {
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
   
@@ -101,6 +103,15 @@ const TemperatureCard = ({ temperatureValue, avgTemp }: TemperatureCardProps) =>
               isDarkMode ? "text-slate-400" : "text-slate-500"
             )}>
               Average temperature (last 10 readings): <span className="font-medium">{avgTemp.toFixed(1)}°C</span>
+            </p>
+          )}
+          
+          {timestamp && (
+            <p className={cn(
+              "text-xs pt-1",
+              isDarkMode ? "text-slate-400" : "text-slate-500"
+            )}>
+              Last updated: {formatTimestamp(timestamp)}
             </p>
           )}
         </div>
