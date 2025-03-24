@@ -3,6 +3,7 @@ import PhCard from "@/components/dashboard/PhCard";
 import TemperatureCard from "@/components/dashboard/TemperatureCard";
 import WaterQualityCard from "@/components/dashboard/WaterQualityCard";
 import { SensorData } from "@/lib/sensors";
+import { QualityTrend } from "@/hooks/useDashboardData";
 
 interface SensorCardsGridProps {
   sensorData: SensorData;
@@ -13,7 +14,7 @@ interface SensorCardsGridProps {
   };
   recommendation: string;
   mostRecentReading: any | null;
-  qualityTrend?: 'rising' | 'falling' | 'stable';
+  qualityTrend?: QualityTrend;
 }
 
 const SensorCardsGrid = ({ 

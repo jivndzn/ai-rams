@@ -4,6 +4,8 @@ import { SensorData, getWaterUseRecommendation } from "@/lib/sensors";
 import { useSensorReadings } from "@/hooks/useSensorReadings";
 import { getAverageSensorReadings } from "@/lib/supabase";
 
+export type QualityTrend = 'rising' | 'falling' | 'stable' | undefined;
+
 export function useDashboardData() {
   const [recommendation, setRecommendation] = useState<string>("");
   
@@ -50,7 +52,7 @@ export function useDashboardData() {
   }, [mostRecentReading]);
   
   // Calculate quality trend
-  const qualityTrend = useMemo(() => {
+  const qualityTrend = useMemo<QualityTrend>(() => {
     if (historicalData.length < 3) return undefined;
     
     // Get last 3 quality readings

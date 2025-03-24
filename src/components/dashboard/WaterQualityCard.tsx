@@ -9,6 +9,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { useTheme } from "@/providers/ThemeProvider";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { formatTimestamp } from "@/lib/datetime";
+import { QualityTrend } from "@/hooks/useDashboardData";
 
 interface WaterQualityCardProps {
   qualityValue: number | undefined;
@@ -16,7 +17,7 @@ interface WaterQualityCardProps {
   dataSource?: string;
   lastUpdated: string;
   avgQuality?: number;
-  qualityTrend?: 'rising' | 'falling' | 'stable';
+  qualityTrend?: QualityTrend;
 }
 
 const WaterQualityCard = ({ 
