@@ -28,21 +28,13 @@ const VisualizationSection = ({
   setApiKey
 }: VisualizationSectionProps) => {
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
-      <div className="lg:col-span-2">
+    <div className="grid grid-cols-1 lg:grid-cols-1 gap-4 lg:gap-6">
+      <div className="lg:col-span-1">
         <HistoricalChart 
           historicalData={historicalData}
           isLoading={isLoading} 
           datasetsBySource={datasetsBySource}
           datasetsByTime={datasetsByTime}
-        />
-      </div>
-      
-      <div className="lg:col-span-1">
-        <ChatSection 
-          sensorData={sensorData}
-          apiKey={apiKey}
-          setApiKey={setApiKey}
         />
       </div>
     </div>
