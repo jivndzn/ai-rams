@@ -40,7 +40,8 @@ const ChatBox = ({ sensorData, apiKey, setApiKey }: ChatBoxProps) => {
     loadConversationMessages,
     createNewConversation,
     saveMessages,
-    renameConversation
+    renameConversation,
+    deleteConversation
   } = useConversationManager({
     messages,
     apiKey
@@ -123,6 +124,7 @@ const ChatBox = ({ sensorData, apiKey, setApiKey }: ChatBoxProps) => {
         currentConversationId={currentConversationId}
         onSelectConversation={handleSelectConversation}
         onRenameConversation={renameConversation}
+        onDeleteConversation={deleteConversation}
       />
       
       {/* Chat messages */}

@@ -11,6 +11,7 @@ interface ConversationControlsProps {
   currentConversationId: string | null;
   onSelectConversation: (id: string) => void;
   onRenameConversation: (id: string, newTitle: string) => Promise<boolean>;
+  onDeleteConversation: (id: string) => Promise<boolean>;
 }
 
 const ConversationControls = ({
@@ -20,7 +21,8 @@ const ConversationControls = ({
   messagesCount,
   currentConversationId,
   onSelectConversation,
-  onRenameConversation
+  onRenameConversation,
+  onDeleteConversation
 }: ConversationControlsProps) => {
   return (
     <div className="flex items-center justify-between px-1 py-2 border-b">
@@ -38,6 +40,7 @@ const ConversationControls = ({
           onSelectConversation={onSelectConversation}
           currentConversationId={currentConversationId}
           onRenameConversation={onRenameConversation}
+          onDeleteConversation={onDeleteConversation}
         />
       </div>
       <Button 

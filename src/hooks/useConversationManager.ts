@@ -161,6 +161,41 @@ export const useConversationManager = ({ messages, apiKey }: UseConversationMana
     }
   };
 
+  // Delete a conversation
+  const deleteConversation = async (conversationId: string): Promise<boolean> => {
+    if (!conversationId) return false;
+    
+    try {
+      // First delete all messages for this conversation
+      const { error: messagesError } = await supabase
+        .from('chat_messages')
+        .delete()
+        .eq('conversation_id', conversationId);
+        
+      if (messagesError) throw messagesError;
+      
+      // Then delete the conversation itself
+      const { error: conversationError } = await supabase
+        .from('chat_conversations')
+        .delete()
+        .eq('id', conversationId);
+        
+      if (conversationError) throw conversationError;
+      
+      // If the deleted conversation was the current one, clear it
+      if (currentConversationId === conversationId) {
+        setCurrentConversationId(null);
+      }
+      
+      toast.success("Conversation deleted");
+      return true;
+    } catch (error) {
+      console.error("Error deleting conversation:", error);
+      toast.error("Failed to delete conversation");
+      return false;
+    }
+  };
+
   return {
     currentConversationId,
     setCurrentConversationId,
@@ -169,6 +204,7 @@ export const useConversationManager = ({ messages, apiKey }: UseConversationMana
     loadConversationMessages,
     createNewConversation,
     saveMessages,
-    renameConversation
+    renameConversation,
+    deleteConversation
   };
 };
