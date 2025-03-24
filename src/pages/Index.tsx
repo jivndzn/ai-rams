@@ -1,27 +1,22 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { SensorData, getWaterUseRecommendation } from "@/lib/sensors";
-import { toast } from "sonner";
 import { getGeminiApiKey } from "@/lib/env";
 import { useSensorReadings } from "@/hooks/useSensorReadings";
 import { getAverageSensorReadings } from "@/lib/supabase";
-import { formatTimestamp, getCurrentDateFormatted } from "@/lib/datetime";
+import { useNavigate } from "react-router-dom";
 
 // Components
 import DashboardHeader from "@/components/dashboard/Header";
-import PhCard from "@/components/dashboard/PhCard";
-import TemperatureCard from "@/components/dashboard/TemperatureCard";
-import WaterQualityCard from "@/components/dashboard/WaterQualityCard";
+import DashboardFooter from "@/components/dashboard/Footer";
+import DashboardTopBar from "@/components/dashboard/DashboardTopBar";
+import SensorCardsGrid from "@/components/dashboard/SensorCardsGrid";
 import HistoricalChart from "@/components/dashboard/HistoricalChart";
 import ChatSection from "@/components/dashboard/ChatSection";
-import DashboardFooter from "@/components/dashboard/Footer";
-import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
 
 const Index = () => {
   const [apiKey, setApiKey] = useState<string>(getGeminiApiKey());
   const [recommendation, setRecommendation] = useState<string>("");
-  const [currentTime, setCurrentTime] = useState<string>(getCurrentDateFormatted());
   const navigate = useNavigate();
   
   // Use our enhanced hook with real-time updates
@@ -111,18 +106,6 @@ const Index = () => {
     }
   }, [sensorData]);
   
-  // Update date/time regularly
-  useEffect(() => {
-    const updateTime = () => {
-      setCurrentTime(getCurrentDateFormatted());
-    };
-    
-    // Update time every minute
-    const intervalId = setInterval(updateTime, 60000);
-    
-    return () => clearInterval(intervalId);
-  }, []);
-  
   // Fetch averages when data changes or periodically
   useEffect(() => {
     const fetchAverages = async () => {
@@ -156,52 +139,16 @@ const Index = () => {
       <div className="max-w-full mx-auto p-4 md:p-6">
         <DashboardHeader />
         
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold">Water Quality Dashboard</h2>
-          <div className="flex items-center gap-4">
-            <div className="text-sm text-muted-foreground">
-              {currentTime}
-            </div>
-            <Button 
-              variant="outline" 
-              onClick={handleViewHistory}
-            >
-              View Full History
-            </Button>
-          </div>
-        </div>
+        <DashboardTopBar onViewHistory={handleViewHistory} />
         
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
-          <div className="lg:col-span-2 space-y-4 lg:space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
-              <PhCard 
-                phValue={sensorData.ph} 
-                avgPh={averages.avgPh} 
-                timestamp={mostRecentReading?.created_at}
-              />
-              <TemperatureCard 
-                temperatureValue={sensorData.temperature} 
-                avgTemp={averages.avgTemp}
-                timestamp={mostRecentReading?.created_at}
-              />
-            </div>
-            
-            <WaterQualityCard 
-              qualityValue={sensorData.quality}
-              recommendation={recommendation}
-              dataSource={sensorData.data_source}
-              lastUpdated={mostRecentReading?.created_at ?? undefined}
-              avgQuality={averages.avgQuality}
-              qualityTrend={qualityTrend}
-            />
-            
-            <HistoricalChart 
-              historicalData={historicalData}
-              isLoading={isLoading} 
-              datasetsBySource={datasetsBySource}
-              datasetsByTime={datasetsByTime}
-            />
-          </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6 mb-6">
+          <SensorCardsGrid 
+            sensorData={sensorData}
+            averages={averages}
+            recommendation={recommendation}
+            mostRecentReading={mostRecentReading}
+            qualityTrend={qualityTrend}
+          />
           
           <div className="lg:col-span-1">
             <ChatSection 
@@ -211,6 +158,13 @@ const Index = () => {
             />
           </div>
         </div>
+        
+        <HistoricalChart 
+          historicalData={historicalData}
+          isLoading={isLoading} 
+          datasetsBySource={datasetsBySource}
+          datasetsByTime={datasetsByTime}
+        />
         
         <DashboardFooter />
       </div>
