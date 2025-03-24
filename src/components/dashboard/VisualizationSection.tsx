@@ -2,12 +2,17 @@
 import HistoricalChart from "@/components/dashboard/HistoricalChart";
 import ChatSection from "@/components/dashboard/ChatSection";
 import { SensorData } from "@/lib/sensors";
+import { SensorReading } from "@/lib/supabase";
 
 interface VisualizationSectionProps {
-  historicalData: any[];
+  historicalData: SensorReading[];
   isLoading: boolean;
-  datasetsBySource: Record<string, any[]>;
-  datasetsByTime: Record<string, any[]>;
+  datasetsBySource: Record<string, SensorReading[]>;
+  datasetsByTime: {
+    today: SensorReading[];
+    lastWeek: SensorReading[];
+    older: SensorReading[];
+  };
   sensorData: SensorData;
   apiKey: string;
   setApiKey: (key: string) => void;
