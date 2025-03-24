@@ -8,6 +8,7 @@ export function useSensorReadings(limit: number = 100) {
   const [readings, setReadings] = useState<SensorReading[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   
   const loadHistoricalData = useCallback(async () => {
     try {
@@ -44,6 +45,8 @@ export function useSensorReadings(limit: number = 100) {
         }));
         
         setReadings(processedData);
+        setLastUpdated(new Date());
+        
         toast.success("Historical data loaded", {
           description: `Loaded ${processedData.length} records from database`
         });
@@ -73,7 +76,7 @@ export function useSensorReadings(limit: number = 100) {
     
     // Set up real-time subscription for sensor_readings table
     const channel = supabase
-      .channel('public:sensor_readings')
+      .channel('sensor_readings_realtime')
       .on('postgres_changes', 
         { 
           event: 'INSERT', 
@@ -99,6 +102,9 @@ export function useSensorReadings(limit: number = 100) {
           setReadings(prevReadings => 
             [processedReading, ...prevReadings].slice(0, limit)
           );
+          
+          // Update last updated timestamp
+          setLastUpdated(new Date());
           
           toast.info("New sensor reading", {
             description: `New reading from ${processedReading.data_source}`
@@ -163,6 +169,7 @@ export function useSensorReadings(limit: number = 100) {
     error,
     loadHistoricalData,
     getDatasetsBySource,
-    getDatasetsByTimeRange
+    getDatasetsByTimeRange,
+    lastUpdated
   };
 }

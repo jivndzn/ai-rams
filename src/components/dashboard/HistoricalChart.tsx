@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SensorReading } from "@/lib/supabase";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
@@ -26,9 +26,10 @@ const HistoricalChart = ({
 }: HistoricalChartProps) => {
   const [timeRange, setTimeRange] = useState<'today' | 'week' | 'all'>('all');
   const [dataSource, setDataSource] = useState<string>('all');
+  const [chartData, setChartData] = useState<any[]>([]);
   
   // Process data for the chart based on selected filters
-  const processChartData = () => {
+  useEffect(() => {
     let filteredData = [...historicalData];
     
     // Filter by time range if datasetsByTime is available
@@ -45,7 +46,7 @@ const HistoricalChart = ({
       filteredData = datasetsBySource[dataSource] || [];
     }
     
-    return filteredData
+    const processed = filteredData
       .filter(reading => reading.created_at && isValidDate(reading.created_at))
       .map(reading => ({
         time: formatTimeForChart(reading.created_at),
@@ -59,9 +60,9 @@ const HistoricalChart = ({
         // Sort by timestamp (ascending) so chart reads left to right
         return new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime();
       });
-  };
-  
-  const chartData = processChartData();
+      
+    setChartData(processed);
+  }, [historicalData, datasetsBySource, datasetsByTime, timeRange, dataSource]);
   
   // Generate sources for filter
   const availableSources = datasetsBySource 
@@ -157,6 +158,7 @@ const HistoricalChart = ({
                     strokeWidth={2}
                     dot={{ r: 3 }}
                     activeDot={{ r: 5 }}
+                    isAnimationActive={true}
                   />
                   <Line 
                     type="monotone" 
@@ -167,6 +169,7 @@ const HistoricalChart = ({
                     strokeWidth={2}
                     dot={{ r: 3 }}
                     activeDot={{ r: 5 }}
+                    isAnimationActive={true}
                   />
                   <Line 
                     type="monotone" 
@@ -177,6 +180,7 @@ const HistoricalChart = ({
                     strokeWidth={2}
                     dot={{ r: 3 }}
                     activeDot={{ r: 5 }}
+                    isAnimationActive={true}
                   />
                 </LineChart>
               </ResponsiveContainer>

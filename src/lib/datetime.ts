@@ -52,7 +52,8 @@ export function formatDate(date: Date | number | string, formatStr: string = 'PP
  * @param timestamp Unix timestamp or Date object
  * @returns Formatted date string
  */
-export function formatTimestamp(timestamp: number | Date | string): string {
+export function formatTimestamp(timestamp: number | Date | string | undefined): string {
+  if (!timestamp) return 'N/A';
   return formatDate(timestamp, 'MMMM d, yyyy h:mm a');
 }
 

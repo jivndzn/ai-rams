@@ -21,6 +21,7 @@ import { useNavigate } from "react-router-dom";
 const Index = () => {
   const [apiKey, setApiKey] = useState<string>(getGeminiApiKey());
   const [recommendation, setRecommendation] = useState<string>("");
+  const [currentTime, setCurrentTime] = useState<string>(getCurrentDateFormatted());
   const navigate = useNavigate();
   
   // Use our enhanced hook with real-time updates
@@ -28,7 +29,8 @@ const Index = () => {
     readings: historicalData, 
     isLoading,
     getDatasetsBySource,
-    getDatasetsByTimeRange
+    getDatasetsByTimeRange,
+    lastUpdated
   } = useSensorReadings(24);
   
   // Process datasets
@@ -56,9 +58,9 @@ const Index = () => {
     
     // Default values if no data is available
     return {
-      ph: 7.0,
-      temperature: 22.0,
-      quality: 75,
+      ph: undefined,
+      temperature: undefined,
+      quality: undefined,
       timestamp: Date.now(),
       data_source: "simulated"
     };
@@ -101,10 +103,27 @@ const Index = () => {
   }, [historicalData]);
   
   useEffect(() => {
-    const recommendation = getWaterUseRecommendation(sensorData.ph);
-    setRecommendation(recommendation);
+    if (sensorData.ph !== undefined) {
+      const recommendation = getWaterUseRecommendation(sensorData.ph);
+      setRecommendation(recommendation);
+    } else {
+      setRecommendation("");
+    }
   }, [sensorData]);
   
+  // Update date/time regularly
+  useEffect(() => {
+    const updateTime = () => {
+      setCurrentTime(getCurrentDateFormatted());
+    };
+    
+    // Update time every minute
+    const intervalId = setInterval(updateTime, 60000);
+    
+    return () => clearInterval(intervalId);
+  }, []);
+  
+  // Fetch averages when data changes or periodically
   useEffect(() => {
     const fetchAverages = async () => {
       try {
@@ -117,11 +136,16 @@ const Index = () => {
     
     fetchAverages();
     
-    // Refresh averages periodically
-    const intervalId = setInterval(fetchAverages, 60000); // Refresh every minute
+    // Refresh averages whenever historical data changes
+    if (historicalData.length > 0) {
+      fetchAverages();
+    }
+    
+    // Also refresh periodically for guaranteed updates
+    const intervalId = setInterval(fetchAverages, 60000);
     
     return () => clearInterval(intervalId);
-  }, [historicalData]);
+  }, [historicalData, lastUpdated]);
   
   const handleViewHistory = () => {
     navigate('/history');
@@ -136,7 +160,7 @@ const Index = () => {
           <h2 className="text-2xl font-bold">Water Quality Dashboard</h2>
           <div className="flex items-center gap-4">
             <div className="text-sm text-muted-foreground">
-              {getCurrentDateFormatted()} (Manila)
+              {currentTime}
             </div>
             <Button 
               variant="outline" 
@@ -150,15 +174,23 @@ const Index = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
           <div className="lg:col-span-2 space-y-4 lg:space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
-              <PhCard phValue={sensorData.ph} avgPh={averages.avgPh} />
-              <TemperatureCard temperatureValue={sensorData.temperature} avgTemp={averages.avgTemp} />
+              <PhCard 
+                phValue={sensorData.ph} 
+                avgPh={averages.avgPh} 
+                timestamp={mostRecentReading?.created_at}
+              />
+              <TemperatureCard 
+                temperatureValue={sensorData.temperature} 
+                avgTemp={averages.avgTemp}
+                timestamp={mostRecentReading?.created_at}
+              />
             </div>
             
             <WaterQualityCard 
               qualityValue={sensorData.quality}
               recommendation={recommendation}
               dataSource={sensorData.data_source}
-              lastUpdated={sensorData.timestamp.toString()}
+              lastUpdated={mostRecentReading?.created_at ?? undefined}
               avgQuality={averages.avgQuality}
               qualityTrend={qualityTrend}
             />
