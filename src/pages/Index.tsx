@@ -10,6 +10,7 @@ import DashboardFooter from "@/components/dashboard/Footer";
 import DashboardTopBar from "@/components/dashboard/DashboardTopBar";
 import SensorCardsGrid from "@/components/dashboard/SensorCardsGrid";
 import VisualizationSection from "@/components/dashboard/VisualizationSection";
+import ChatSection from "@/components/dashboard/ChatSection";
 
 const Index = () => {
   const [apiKey, setApiKey] = useState<string>(getGeminiApiKey());
