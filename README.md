@@ -1,70 +1,115 @@
-# Welcome to your Lovable project
+AI-RAMS: Resourceful AI-Integrated Management System
+Overview
+AI-RAMS (Resourceful AI-Integrated Management System) is an intelligent rainwater monitoring and analysis system designed to optimize water usage by combining rainwater harvesting with real-time pH monitoring. The system ensures water quality and efficiency for domestic, agricultural, and industrial applications using AI-driven insights.
 
-## Project info
+Key Features
+Real-time Monitoring: Tracks pH levels, temperature, and water quality via Arduino sensors.
 
-**URL**: https://lovable.dev/projects/c58790e4-638f-4d1f-99c4-7c16c6cea94f
+AI-Powered Recommendations: Provides actionable insights for optimal water usage (e.g., domestic, irrigation, non-potable).
 
-## How can I edit this code?
+Data Visualization: Interactive dashboard with historical trends and live sensor data.
 
-There are several ways of editing your application.
+User-Friendly Interface: Web application built with ReactJS, TypeScript, and Vite.
 
-**Use Lovable**
+Cloud Integration: Stores and retrieves data using Supabase for scalability.
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/c58790e4-638f-4d1f-99c4-7c16c6cea94f) and start prompting.
+Technologies Used
+Hardware: Arduino Uno, pH sensors, temperature sensors.
 
-Changes made via Lovable will be committed automatically to this repo.
+Software:
 
-**Use your preferred IDE**
+Backend: Python (data processing), Supabase (database).
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+Frontend: ReactJS, TypeScript, Vite.
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+AI: Gemini API for natural language processing and recommendations.
 
-Follow these steps:
+Standards Compliance: Adheres to ISO/IEC 22989 (AI), ISO 14001 (environmental management), and ISO 5667-1 (water sampling).
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+Installation
+Prerequisites
+Node.js (v16+)
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+Python (v3.8+)
 
-# Step 3: Install the necessary dependencies.
-npm i
+Arduino IDE (for hardware setup)
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+Supabase account (for database)
+
+Steps
+Clone the Repository:
+
+bash
+Copy
+git clone https://github.com/your-repo/AI-RAMS.git
+cd AI-RAMS
+Backend Setup:
+
+Install Python dependencies:
+
+bash
+Copy
+pip install requests pytz pyserial
+Configure sensors_readings.py with your Supabase URL and API key.
+
+Frontend Setup:
+
+Install dependencies:
+
+bash
+Copy
+cd frontend
+npm install
+Configure environment variables (e.g., Gemini API key) in .env.
+
+Hardware Setup:
+
+Connect Arduino Uno with pH and temperature sensors.
+
+Upload the provided Arduino script (contact authors for full code).
+
+Run the System:
+
+Start the Python script for sensor data collection:
+
+bash
+Copy
+python sensors_readings.py
+Launch the frontend:
+
+bash
+Copy
 npm run dev
-```
+Usage
+Dashboard: View real-time pH, temperature, and water quality metrics.
 
-**Edit a file directly in GitHub**
+AI Assistant: Chat with the AI for usage recommendations (e.g., "Is this water safe for plants?").
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+History: Analyze historical data with filters and export options.
 
-**Use GitHub Codespaces**
+Hardware: Ensure sensors are calibrated and connected for accurate readings.
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+Project Structure
+Copy
+AI-RAMS/
+├── backend/            # Python scripts for sensor data processing
+├── frontend/           # ReactJS web application
+│   ├── src/            # Source code for UI components
+│   ├── public/         # Static assets
+│   └── ...             
+├── hardware/           # Arduino schematics and code (contact authors)
+├── docs/               # Project documentation (e.g., thesis, manuals)
+└── README.md           # This file
+Contributors
+John Ivan D. Dizon (GitHub)
 
-## What technologies are used for this project?
+Barlo R. Ordiales (GitHub)
 
-This project is built with .
+Mark Lorenz Y. Manalese (GitHub)
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+License
+This project is proprietary. For inquiries, contact jivandizon@gmail.com.
 
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/c58790e4-638f-4d1f-99c4-7c16c6cea94f) and click on Share -> Publish.
-
-## I want to use a custom domain - is that possible?
-
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
-# ai-rams
+Acknowledgments
+Special thanks to Holy Angel University and our adviser, Engr. Eugene Erwin Baltazar, for their guidance.
+Supported by ISO standards for AI, environmental management, and water quality.
